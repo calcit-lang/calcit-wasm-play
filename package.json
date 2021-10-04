@@ -1,0 +1,14 @@
+{
+  "name": "calcit-wasm-play",
+  "version": "0.0.1",
+  "description": "Demo of Calcit in WASM",
+  "main": "index.js",
+  "author": "jiyinyiyong <jiyinyiyong@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^2.6.2"
+  },
+  "dependencies": {
+    "@mvc-works/codearea": "^0.0.2"
+  }
+}

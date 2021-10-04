@@ -1,0 +1,43 @@
+body {
+  position: absolute;
+  width: 100%;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
+body * {
+  box-sizing: border-box;
+}
+
+textarea {
+  width: 40%;
+  flex: 1;
+  height: 100%;
+  padding: 8px 8px;
+  font-family: Source Code Pro, Menlo, Consolas, monospace;
+  border-color: #ddd;
+  resize: none;
+}
+
+.panel {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  margin: 4px;
+}
+
+.result {
+  padding: 24px 8px 200px 8px;
+  background-color: #eee;
+  font-family: Source Code Pro, Menlo, Consolas, monospace;
+  flex: 1;
+  overflow: auto;
+  font-size: 14px;
+}
