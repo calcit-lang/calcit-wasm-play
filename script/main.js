@@ -1,4 +1,4 @@
-import init, { run_code } from "./pkg/calcit_wasm_play";
+import init, { run_code } from "../pkg/calcit_wasm_play";
 import { codearea } from "@mvc-works/codearea";
 
 init().then((w) => {

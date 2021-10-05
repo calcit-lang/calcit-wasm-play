@@ -7,14 +7,13 @@ use std::panic;
 
 use wasm_bindgen::prelude::*;
 
-use calcit_runner::{load_core_snapshot, program, runner, snapshot};
+use calcit_runner::{load_core_snapshot, program, runner, snapshot, Calcit};
 
-#[wasm_bindgen]
-pub fn run_code(snippet: String) -> String {
+pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
-  program::clear_all_program_evaled_defs("app.main/main!", "app.main/reload!", false).unwrap();
+  program::clear_all_program_evaled_defs("app.main/main!", "app.main/reload!", false)?;
 
-  let core_snapshot = load_core_snapshot().unwrap();
+  let core_snapshot = load_core_snapshot()?;
   let mut snapshot = snapshot::gen_default(); // placeholder data
   match snapshot::create_file_from_snippet(&snippet) {
     Ok(main_file) => {
@@ -27,7 +26,7 @@ pub fn run_code(snippet: String) -> String {
     snapshot.files.insert(k.to_owned(), v.to_owned());
   }
 
-  let program_code = program::extract_program_data(&snapshot).unwrap();
+  let program_code = program::extract_program_data(&snapshot)?;
   let check_warnings: &RefCell<Vec<String>> = &RefCell::new(vec![]);
 
   // make sure builtin classes are touched
@@ -38,13 +37,21 @@ pub fn run_code(snippet: String) -> String {
     calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
     None,
     check_warnings,
-  )
-  .unwrap();
+  )?;
 
-  let v = calcit_runner::run_program("app.main/main!", im::vector![], &program_code).unwrap();
+  let v = calcit_runner::run_program("app.main/main!", im::vector![], &program_code)?;
 
-  // web_sys::console::log_1(&"Hello, world!".into());
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
-  v.to_string()
+  Ok(v)
+}
+
+#[wasm_bindgen]
+pub fn run_code(snippet: String) -> String {
+  match eval_code(snippet) {
+    Ok(v) => format!("{}", v),
+    Err(e) => {
+      format!("Error: {}", e)
+    }
+  }
 }
