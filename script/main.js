@@ -3,6 +3,7 @@ import { codearea } from "@mvc-works/codearea";
 
 let codeEl = document.querySelector(".code");
 let resultEl = document.querySelector(".result");
+
 codearea(codeEl);
 
 init().then((w) => {
@@ -28,7 +29,7 @@ let run = () => {
 document.querySelector(".run").addEventListener("click", run);
 
 codeEl.addEventListener("keydown", (event) => {
-  if (event.keyCode === 13 && event.metaKey) {
+  if (event.keyCode === 13 && event.metaKey && event.shiftKey) {
     run();
     event.preventDefault();
   }
