@@ -7,7 +7,9 @@ use std::panic;
 
 use wasm_bindgen::prelude::*;
 
-use calcit_runner::{load_core_snapshot, program, runner, snapshot, Calcit};
+use calcit_runner::{
+  load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems,
+};
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -37,17 +39,33 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
     None,
     check_warnings,
-  )?;
+  )
+  .map_err(|e| e.msg)?;
 
-  let v = calcit_runner::run_program("app.main/main!", im::vector![], &program_code)?;
+  let v = calcit_runner::run_program("app.main/main!", im::vector![], &program_code)
+    .map_err(|e| format!("{}", e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
   Ok(v)
 }
 
+pub fn console_log(xs: &CalcitItems) -> Result<Calcit, CalcitErr> {
+  let mut buffer = String::from("");
+  for (idx, x) in xs.iter().enumerate() {
+    if idx > 0 {
+      buffer.push(' ');
+    }
+    buffer.push_str(&x.turn_string());
+  }
+  web_sys::console::log_1(&JsValue::from_str(&buffer));
+  Ok(Calcit::Nil)
+}
+
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
+  calcit_runner::builtins::register_import_proc("log", console_log);
+
   match eval_code(snippet) {
     Ok(v) => format!("{}", v),
     Err(e) => {
