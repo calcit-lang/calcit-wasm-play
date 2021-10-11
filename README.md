@@ -2,8 +2,6 @@
 
 Demo http://repo.calcit-lang.org/calcit-wasm-play/
 
-Notice: `log` function is injected for logging.
-
 ### Development
 
 > Based on local copy of calcit_runner.rs with `libloading` and injections disabled.

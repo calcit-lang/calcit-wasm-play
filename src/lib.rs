@@ -64,7 +64,8 @@ pub fn console_log(xs: &CalcitItems) -> Result<Calcit, CalcitErr> {
 
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
-  calcit_runner::builtins::register_import_proc("log", console_log);
+  calcit_runner::builtins::register_import_proc("println", console_log);
+  calcit_runner::builtins::register_import_proc("echo", console_log);
 
   match eval_code(snippet) {
     Ok(v) => format!("{}", v),
