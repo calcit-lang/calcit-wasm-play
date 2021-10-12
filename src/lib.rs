@@ -21,7 +21,10 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     Ok(main_file) => {
       snapshot.files.insert(String::from("app.main"), main_file);
     }
-    Err(e) => panic!("failed snapshot: {}", e),
+    Err(e) => {
+      web_sys::console::log_1(&JsValue::from_str(&format!("[Error] bad snapshot: {}", e)));
+      panic!("failed snapshot: {}", e)
+    }
   }
   // attach core
   for (k, v) in core_snapshot.files {
