@@ -5,6 +5,7 @@ extern crate web_sys;
 use std::cell::RefCell;
 use std::panic;
 
+use im_ternary_tree::TernaryTreeList;
 use wasm_bindgen::prelude::*;
 
 use calcit_runner::{
@@ -19,7 +20,9 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   let mut snapshot = snapshot::gen_default(); // placeholder data
   match snapshot::create_file_from_snippet(&snippet) {
     Ok(main_file) => {
-      snapshot.files.insert(String::from("app.main"), main_file);
+      snapshot
+        .files
+        .insert(String::from("app.main").into_boxed_str(), main_file);
     }
     Err(e) => {
       web_sys::console::log_1(&JsValue::from_str(&format!("[Error] bad snapshot: {}", e)));
@@ -31,21 +34,26 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     snapshot.files.insert(k.to_owned(), v.to_owned());
   }
 
-  let program_code = program::extract_program_data(&snapshot)?;
+  // now global states
+  {
+    let mut prgm = { program::PROGRAM_CODE_DATA.write().unwrap() };
+    *prgm = program::extract_program_data(&snapshot)?;
+  }
+
   let check_warnings: &RefCell<Vec<String>> = &RefCell::new(vec![]);
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
     calcit_runner::primes::CORE_NS,
     calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
-    &program_code,
     calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
     None,
     check_warnings,
+    &TernaryTreeList::Empty,
   )
   .map_err(|e| e.msg)?;
 
-  let v = calcit_runner::run_program("app.main/main!", im::vector![], &program_code)
+  let v = calcit_runner::run_program("app.main/main!", TernaryTreeList::Empty)
     .map_err(|e| format!("{}", e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
@@ -53,7 +61,10 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   Ok(v)
 }
 
-pub fn console_log(xs: &CalcitItems) -> Result<Calcit, CalcitErr> {
+pub fn console_log(
+  xs: &CalcitItems,
+  _f: &calcit_runner::call_stack::CallStackVec,
+) -> Result<Calcit, CalcitErr> {
   let mut buffer = String::from("");
   for (idx, x) in xs.iter().enumerate() {
     if idx > 0 {
