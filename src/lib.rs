@@ -14,15 +14,17 @@ use calcit_runner::{
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
-  program::clear_all_program_evaled_defs("app.main/main!", "app.main/reload!", false)?;
+  program::clear_all_program_evaled_defs(
+    "app.main/main!".into(),
+    "app.main/reload!".into(),
+    false,
+  )?;
 
   let core_snapshot = load_core_snapshot()?;
   let mut snapshot = snapshot::gen_default(); // placeholder data
   match snapshot::create_file_from_snippet(&snippet) {
     Ok(main_file) => {
-      snapshot
-        .files
-        .insert(String::from("app.main").into_boxed_str(), main_file);
+      snapshot.files.insert("app.main".into(), main_file);
     }
     Err(e) => {
       web_sys::console::log_1(&JsValue::from_str(&format!("[Error] bad snapshot: {}", e)));
@@ -44,16 +46,16 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
-    calcit_runner::primes::CORE_NS,
-    calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
-    calcit_runner::primes::BUILTIN_CLASSES_ENTRY,
+    calcit_runner::primes::GEN_CORE_NS.to_owned(),
+    calcit_runner::primes::GEN_CLASS_ENTRY.to_owned(),
+    calcit_runner::primes::GEN_CLASS_ENTRY.to_owned(),
     None,
     check_warnings,
-    &TernaryTreeList::Empty,
+    &rpds::List::new_sync(),
   )
   .map_err(|e| e.msg)?;
 
-  let v = calcit_runner::run_program("app.main/main!", TernaryTreeList::Empty)
+  let v = calcit_runner::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty)
     .map_err(|e| format!("{}", e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
@@ -63,7 +65,7 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
 pub fn console_log(
   xs: &CalcitItems,
-  _f: &calcit_runner::call_stack::CallStackVec,
+  _f: &calcit_runner::call_stack::CallStackList,
 ) -> Result<Calcit, CalcitErr> {
   let mut buffer = String::from("");
   for (idx, x) in xs.iter().enumerate() {
