@@ -13,7 +13,8 @@ init().then((w) => {
 let run = () => {
   let code = codeEl.value;
 
-  console.log("code:", code);
+  // console.log("code:", code);
+  console.clear();
 
   resultEl.innerText = "";
   let start = performance.now();

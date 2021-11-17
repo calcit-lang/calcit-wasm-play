@@ -6,16 +6,31 @@
   <title>Play</title>
   <script defer type="module" src="./script/main.js"></script>
   <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" name="viewport" >
+  <link rel="icon" type="image/png" href="http://cdn.tiye.me/logo/calcit.png"/>
   <link rel="stylesheet" href="./script/main.css"/>
 </head>
 <body>
 
-  <textarea class="code" placeholder="code here..." ></textarea>
+  <textarea class="code" placeholder="code here..." >
+
+println (range 100)
+
+println $ str "|hello world"
+
+let
+    fact $ fn (acc x)
+      if (>= x 1)
+        recur (* x acc) (dec x)
+        , acc
+  println $ fact 1 10
+
+  </textarea>
   <div class="panel">
     <div>
       <button class="run" >Run</button>
+      <a href="https://github.com/calcit-lang/calcit_runner.rs/discussions/79#discussioncomment-1653493" target="_blank" >Examples</a>
     </div>
-    <div class="result"></div>
+    <div class="result">;; logs in Console, open Console to read</div>
   </div>
 
 </body>
