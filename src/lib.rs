@@ -2,23 +2,17 @@
 extern crate wasm_bindgen;
 extern crate web_sys;
 
+use im_ternary_tree::TernaryTreeList;
 use std::cell::RefCell;
 use std::panic;
 
-use im_ternary_tree::TernaryTreeList;
 use wasm_bindgen::prelude::*;
 
-use calcit_runner::{
-  load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems,
-};
+use calcit_runner::{call_stack::CallStackList, load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems};
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
-  program::clear_all_program_evaled_defs(
-    "app.main/main!".into(),
-    "app.main/reload!".into(),
-    false,
-  )?;
+  program::clear_all_program_evaled_defs("app.main/main!".into(), "app.main/reload!".into(), false)?;
 
   let core_snapshot = load_core_snapshot()?;
   let mut snapshot = snapshot::gen_default(); // placeholder data
@@ -36,7 +30,7 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     snapshot.files.insert(k.to_owned(), v.to_owned());
   }
 
-  // now global states
+  // overwrite global states
   {
     let mut prgm = { program::PROGRAM_CODE_DATA.write().unwrap() };
     *prgm = program::extract_program_data(&snapshot)?;
@@ -46,27 +40,23 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
-    calcit_runner::primes::GEN_CORE_NS.to_owned(),
-    calcit_runner::primes::GEN_CLASS_ENTRY.to_owned(),
-    calcit_runner::primes::GEN_CLASS_ENTRY.to_owned(),
+    calcit_runner::primes::CORE_NS.into(),
+    calcit_runner::primes::BUILTIN_CLASSES_ENTRY.into(),
+    calcit_runner::primes::BUILTIN_CLASSES_ENTRY.into(),
     None,
     check_warnings,
     &rpds::List::new_sync(),
   )
   .map_err(|e| e.msg)?;
 
-  let v = calcit_runner::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty)
-    .map_err(|e| format!("{}", e))?;
+  let v = calcit_runner::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| format!("{}", e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
   Ok(v)
 }
 
-pub fn console_log(
-  xs: &CalcitItems,
-  _f: &calcit_runner::call_stack::CallStackList,
-) -> Result<Calcit, CalcitErr> {
+pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
   let mut buffer = String::from("");
   for (idx, x) in xs.iter().enumerate() {
     if idx > 0 {
