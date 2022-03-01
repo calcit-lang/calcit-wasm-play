@@ -6,13 +6,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# calcit_runner = { path="../calcit_runner.rs" }
-calcit_runner = "0.5.7"
+# calcit = { path="../calcit" }
+calcit = "0.5.18"
+rpds = "0.10.0"
+im_ternary_tree = "0.0.5-a1"
 wasm-bindgen = "*"
 console_error_panic_hook = "*"
 web-sys = { version="0.3.5", features=[ "console" ] }
-im_ternary_tree = "=0.0.1-a7"
-rpds = "0.10.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
