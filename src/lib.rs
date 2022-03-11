@@ -8,7 +8,7 @@ use std::panic;
 
 use wasm_bindgen::prelude::*;
 
-use calcit_runner::{call_stack::CallStackList, load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems};
+use calcit::{call_stack::CallStackList, load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems};
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -40,16 +40,16 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
-    calcit_runner::primes::CORE_NS.into(),
-    calcit_runner::primes::BUILTIN_CLASSES_ENTRY.into(),
-    calcit_runner::primes::BUILTIN_CLASSES_ENTRY.into(),
+    calcit::primes::CORE_NS.into(),
+    calcit::primes::BUILTIN_CLASSES_ENTRY.into(),
+    calcit::primes::BUILTIN_CLASSES_ENTRY.into(),
     None,
     check_warnings,
     &rpds::List::new_sync(),
   )
   .map_err(|e| e.msg)?;
 
-  let v = calcit_runner::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| format!("{}", e))?;
+  let v = calcit::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| format!("{}", e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
@@ -70,8 +70,8 @@ pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calc
 
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
-  calcit_runner::builtins::register_import_proc("println", console_log);
-  calcit_runner::builtins::register_import_proc("echo", console_log);
+  calcit::builtins::register_import_proc("println", console_log);
+  calcit::builtins::register_import_proc("echo", console_log);
 
   match eval_code(snippet) {
     Ok(v) => format!("{}", v),
