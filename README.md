@@ -4,7 +4,7 @@ Demo http://repo.calcit-lang.org/calcit-wasm-play/
 
 ### Development
 
-> Based on local copy of calcit_runner.rs with `libloading` and injections disabled.
+> Based on local copy of `calcit` with `libloading` and injections disabled.
 
 Build wasm code:
 
