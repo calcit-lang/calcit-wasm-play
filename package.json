@@ -6,7 +6,7 @@
   "author": "jiyinyiyong <jiyinyiyong@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "vite": "^2.8.6"
+    "vite": "^2.9.5"
   },
   "dependencies": {
     "@mvc-works/codearea": "^0.0.3"
