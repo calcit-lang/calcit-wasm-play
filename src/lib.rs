@@ -68,9 +68,22 @@ pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calc
   Ok(Calcit::Nil)
 }
 
+pub fn console_error(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
+  let mut buffer = String::from("");
+  for (idx, x) in xs.iter().enumerate() {
+    if idx > 0 {
+      buffer.push(' ');
+    }
+    buffer.push_str(&x.turn_string());
+  }
+  web_sys::console::error_1(&JsValue::from_str(&buffer));
+  Ok(Calcit::Nil)
+}
+
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
   calcit::builtins::register_import_proc("println", console_log);
+  calcit::builtins::register_import_proc("eprintln", console_error);
   calcit::builtins::register_import_proc("echo", console_log);
 
   match eval_code(snippet) {
