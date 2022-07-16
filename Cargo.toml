@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 # calcit = { path="../calcit" }
-calcit = "0.5.41"
-rpds = "0.11.0"
-im_ternary_tree = "0.0.6"
-wasm-bindgen = "0.2.80"
+calcit = "0.5.48"
+rpds = "0.12.0"
+im_ternary_tree = "0.0.10"
+wasm-bindgen = "0.2.81"
 console_error_panic_hook = "*"
-web-sys = { version="0.3.57", features=[ "console" ] }
+web-sys = { version="0.3.58", features=[ "console" ] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]

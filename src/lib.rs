@@ -8,7 +8,9 @@ use std::panic;
 
 use wasm_bindgen::prelude::*;
 
-use calcit::{call_stack::CallStackList, load_core_snapshot, program, runner, snapshot, Calcit, CalcitErr, CalcitItems};
+use calcit::{
+  call_stack::CallStackList, load_core_snapshot, primes::LocatedWarning, program, runner, snapshot, Calcit, CalcitErr, CalcitItems,
+};
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   // panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -36,7 +38,7 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     *prgm = program::extract_program_data(&snapshot)?;
   }
 
-  let check_warnings: &RefCell<Vec<String>> = &RefCell::new(vec![]);
+  let check_warnings: &RefCell<Vec<LocatedWarning>> = &RefCell::new(vec![]);
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
