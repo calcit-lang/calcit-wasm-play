@@ -1,8 +1,15 @@
-import init, { run_code } from "../pkg/calcit_wasm_play";
-import { codearea } from "@mvc-works/codearea";
-
 let codeEl = document.querySelector(".code");
 let resultEl = document.querySelector(".result");
+
+window._calcit_log = (content) => {
+  resultEl.innerText = resultEl.innerText + "\n" + content;
+};
+window._calcit_error = (content) => {
+  resultEl.innerText = resultEl.innerText + "\n" + content;
+};
+
+import init, { run_code } from "../pkg/calcit_wasm_play";
+import { codearea } from "@mvc-works/codearea";
 
 codearea(codeEl);
 
@@ -14,7 +21,7 @@ let run = () => {
   let code = codeEl.value;
 
   // console.log("code:", code);
-  console.clear();
+  // console.clear();
 
   resultEl.innerText = "";
   let start = performance.now();
@@ -24,7 +31,8 @@ let run = () => {
   // console.log("result", result);
   let cost = performance.now() - start;
 
-  resultEl.innerText = result + "\n\n" + cost + "ms";
+  resultEl.innerText =
+    resultEl.innerText + "\n\n" + result + "\n\n" + cost + "ms";
 };
 
 document.querySelector(".run").addEventListener("click", run);
