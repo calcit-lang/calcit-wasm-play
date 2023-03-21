@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <title>Play</title>
-  <script defer type="module" src="./script/main.js"></script>
+  <script defer type="module" src="./script/main.mjs"></script>
   <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" name="viewport" >
   <link rel="icon" type="image/png" href="http://cdn.tiye.me/logo/calcit.png"/>
   <link rel="stylesheet" type="text/css" href="http://cdn.tiye.me/favored-fonts/main-fonts.css">
@@ -22,7 +22,7 @@
 
   </div>
   <div class="body">
-    <textarea class="code" placeholder="code here..." >
+    <textarea class="code" spellcheck="false" placeholder="code here..." >
 
 println (range 100)
 
@@ -34,8 +34,7 @@ let
         recur (* x acc) (dec x)
         , acc
   println $ fact 1 10
-
-    </textarea>
+</textarea>
     <div class="result">;; logs in Console, open Console to read</div>
   </div>
 

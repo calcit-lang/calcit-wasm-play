@@ -1,4 +1,4 @@
-// extern crate console_error_panic_hook;
+extern crate console_error_panic_hook;
 extern crate wasm_bindgen;
 extern crate web_sys;
 
@@ -13,7 +13,7 @@ use calcit::{
 };
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
-  // panic::set_hook(Box::new(console_error_panic_hook::hook));
+  panic::set_hook(Box::new(console_error_panic_hook::hook));
   program::clear_all_program_evaled_defs("app.main/main!".into(), "app.main/reload!".into(), false)?;
 
   let core_snapshot = load_core_snapshot()?;
@@ -67,6 +67,15 @@ pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calc
     buffer.push_str(&x.turn_string());
   }
   web_sys::console::log_1(&JsValue::from_str(&buffer));
+
+  let args = js_sys::Array::new();
+  args.push(&JsValue::from_str(&buffer));
+  // use reflect to get a javascript function
+  let f: js_sys::Function = js_sys::Reflect::get(&web_sys::window().unwrap(), &JsValue::from_str("_calcit_log"))
+    .unwrap()
+    .into();
+  js_sys::Reflect::apply(&f, &JsValue::null(), &args).unwrap();
+
   Ok(Calcit::Nil)
 }
 
@@ -79,6 +88,15 @@ pub fn console_error(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Ca
     buffer.push_str(&x.turn_string());
   }
   web_sys::console::error_1(&JsValue::from_str(&buffer));
+
+  let args = js_sys::Array::new();
+  args.push(&JsValue::from_str(&buffer));
+  // use reflect to get a javascript function
+  let f: js_sys::Function = js_sys::Reflect::get(&web_sys::window().unwrap(), &JsValue::from_str("_calcit_error"))
+    .unwrap()
+    .into();
+  js_sys::Reflect::apply(&f, &JsValue::null(), &args).unwrap();
+
   Ok(Calcit::Nil)
 }
 
