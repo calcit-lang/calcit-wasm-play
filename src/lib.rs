@@ -49,13 +49,17 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     check_warnings,
     &rpds::List::new_sync(),
   )
-  .map_err(|e| e.msg)?;
+  .map_err(|e| detailed_error(&e))?;
 
-  let v = calcit::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| format!("{}", e))?;
+  let v = calcit::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| detailed_error(&e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
   Ok(v)
+}
+
+fn detailed_error(e: &CalcitErr) -> String {
+  e.msg.trim().to_owned() + "\n" + &e.warnings.iter().map(|w| format!("{}", w)).collect::<Vec<_>>().join("")
 }
 
 pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {

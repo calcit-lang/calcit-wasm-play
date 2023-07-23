@@ -9,7 +9,7 @@
     "watch": "cargo watch -w src -s 'wasm-pack build -t web'"
   },
   "devDependencies": {
-    "vite": "^4.2.0"
+    "vite": "^4.4.6"
   },
   "dependencies": {
     "@mvc-works/codearea": "^0.0.3"
