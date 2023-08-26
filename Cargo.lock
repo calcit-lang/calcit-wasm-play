@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "archery"
-version = "0.5.0"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6cd774058b1b415c4855d8b86436c04bf050c003156fe24bc326fb3fe75c343"
+checksum = "ab7d8a6d00b222909638a01ddcc8c533219e9d5bfada1613afae43481f2fc699"
 dependencies = [
  "static_assertions",
 ]
@@ -48,9 +48,9 @@ checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
 
 [[package]]
 name = "calcit"
-version = "0.7.7"
+version = "0.8.0-a2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa4acd775d6abc900e84b616f74c904d37d40ef7ff873e71ec4f4697a3404e8c"
+checksum = "aae0945e7ce17c968eda17a5b74f949ae13dd418c4ca75d00a58ec40aafcb2bb"
 dependencies = [
  "cirru_edn",
  "cirru_parser",
@@ -95,9 +95,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cirru_edn"
-version = "0.4.0"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37f78b9daa64e28a97fb4879b9d3a3c4c0c50ad8e14698a6a4fb9db9868bfd43"
+checksum = "5399b8563cb708471e8ded7433bc65e725fa17e38eb339de468445c1f3ee3c70"
 dependencies = [
  "cirru_parser",
  "hex",
@@ -106,9 +106,9 @@ dependencies = [
 
 [[package]]
 name = "cirru_parser"
-version = "0.1.24"
+version = "0.1.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c942c2dafb7e7cab267b66e6ccbb0b4ef11a471b83c90a9e072cdd02d2081aa"
+checksum = "1297388204c9d3c72d1cafea80682fd6384e79c66dfe980460886bff7387e684"
 
 [[package]]
 name = "clap"
@@ -449,9 +449,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.18.0"
+version = "1.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
+checksum = "9670a07f94779e00908f3e686eab508878ebb390ba6e604d3a284c00e8d0487b"
 
 [[package]]
 name = "option-ext"
@@ -505,9 +505,9 @@ dependencies = [
 
 [[package]]
 name = "rpds"
-version = "0.13.0"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bd6ce569b15c331b1e5fd8cf6adb0bf240678b5f0cdc4d0f41e11683f6feba9"
+checksum = "0e475a12283dfa5e31bd0b0a1a10b5486c0965a34eaf8a695d6df4b47810250d"
 dependencies = [
  "archery",
 ]
