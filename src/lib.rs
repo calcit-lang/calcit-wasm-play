@@ -9,7 +9,12 @@ use std::panic;
 use wasm_bindgen::prelude::*;
 
 use calcit::{
-  call_stack::CallStackList, load_core_snapshot, primes::LocatedWarning, program, runner, snapshot, Calcit, CalcitErr, CalcitItems,
+  call_stack::CallStackList,
+  load_core_snapshot,
+  primes::LocatedWarning,
+  program, runner,
+  snapshot::{self, Snapshot},
+  Calcit, CalcitErr, CalcitItems,
 };
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
@@ -17,7 +22,7 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   program::clear_all_program_evaled_defs("app.main/main!".into(), "app.main/reload!".into(), false)?;
 
   let core_snapshot = load_core_snapshot()?;
-  let mut snapshot = snapshot::gen_default(); // placeholder data
+  let mut snapshot = Snapshot::default(); // placeholder data
   match snapshot::create_file_from_snippet(&snippet) {
     Ok(main_file) => {
       snapshot.files.insert("app.main".into(), main_file);
