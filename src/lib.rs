@@ -2,19 +2,17 @@ extern crate console_error_panic_hook;
 extern crate wasm_bindgen;
 extern crate web_sys;
 
-use im_ternary_tree::TernaryTreeList;
 use std::cell::RefCell;
 use std::panic;
 
 use wasm_bindgen::prelude::*;
 
 use calcit::{
+  calcit::LocatedWarning,
   call_stack::CallStackList,
-  load_core_snapshot,
-  primes::LocatedWarning,
-  program, runner,
+  load_core_snapshot, program, runner,
   snapshot::{self, Snapshot},
-  Calcit, CalcitErr, CalcitItems,
+  Calcit, CalcitErr,
 };
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
@@ -47,16 +45,14 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
   // make sure builtin classes are touched
   runner::preprocess::preprocess_ns_def(
-    calcit::primes::CORE_NS.into(),
-    calcit::primes::BUILTIN_CLASSES_ENTRY.into(),
-    calcit::primes::BUILTIN_CLASSES_ENTRY.into(),
-    None,
+    calcit::calcit::CORE_NS,
+    calcit::calcit::BUILTIN_CLASSES_ENTRY,
     check_warnings,
-    &rpds::List::new_sync(),
+    &CallStackList::default(),
   )
   .map_err(|e| detailed_error(&e))?;
 
-  let v = calcit::run_program("app.main".into(), "main!".into(), TernaryTreeList::Empty).map_err(|e| detailed_error(&e))?;
+  let v = calcit::run_program("app.main".into(), "main!".into(), &[]).map_err(|e| detailed_error(&e))?;
 
   // web_sys::console::log_1(&JsValue::from_str(&format!("Result: {}", v)));
   // JsValue::from_str(&format!("Result: {}", v))
@@ -67,7 +63,7 @@ fn detailed_error(e: &CalcitErr) -> String {
   e.msg.trim().to_owned() + "\n" + &e.warnings.iter().map(|w| format!("{}", w)).collect::<Vec<_>>().join("")
 }
 
-pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
+pub fn console_log(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
   let mut buffer = String::from("");
   for (idx, x) in xs.iter().enumerate() {
     if idx > 0 {
@@ -88,7 +84,7 @@ pub fn console_log(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calc
   Ok(Calcit::Nil)
 }
 
-pub fn console_error(xs: &CalcitItems, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
+pub fn console_error(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
   let mut buffer = String::from("");
   for (idx, x) in xs.iter().enumerate() {
     if idx > 0 {

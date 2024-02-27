@@ -30,6 +30,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "bincode"
+version = "2.0.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f11ea1a0346b94ef188834a65c068a03aec181c94896d481d7a0a40d85b0ce95"
+dependencies = [
+ "bincode_derive",
+ "serde",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.0-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e30759b3b99a1b802a7a3aa21c85c3ded5c28e1c83170d82d70f08bbf7f3e4c"
+dependencies = [
+ "virtue",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -49,9 +68,9 @@ checksum = "a3e2c3daef883ecc1b5d58c15adae93470a91d425f3532ba1695849656af3fc1"
 
 [[package]]
 name = "calcit"
-version = "0.8.14"
+version = "0.8.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "767e62c0f74e4fad2d8f9c6c52805347a28a63c93f2f1c871c981c7195cb6c0e"
+checksum = "71e252f469f617bd27c7f93ead7180857e0f94166b0699df4ac231691881f408"
 dependencies = [
  "cirru_edn",
  "cirru_parser",
@@ -60,7 +79,7 @@ dependencies = [
  "ctrlc",
  "dirs",
  "hex",
- "im_ternary_tree",
+ "im_ternary_tree 0.0.17",
  "lazy_static",
  "libloading",
  "notify",
@@ -77,7 +96,7 @@ version = "0.1.0"
 dependencies = [
  "calcit",
  "console_error_panic_hook",
- "im_ternary_tree",
+ "im_ternary_tree 0.0.18",
  "js-sys",
  "rpds",
  "wasm-bindgen",
@@ -98,10 +117,11 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cirru_edn"
-version = "0.5.0"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a35d38ee59f7409023f9dee361dc98760f33c9ad1f21283e536939d9561ed44"
+checksum = "b4e435d0f66a1d16f727720f46a89c7a203e306bf466483ba5ff65903fd0f05c"
 dependencies = [
+ "bincode",
  "cirru_parser",
  "hex",
  "lazy_static",
@@ -109,9 +129,12 @@ dependencies = [
 
 [[package]]
 name = "cirru_parser"
-version = "0.1.25"
+version = "0.1.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1297388204c9d3c72d1cafea80682fd6384e79c66dfe980460886bff7387e684"
+checksum = "c96247e15778d471f8c94b321fa11220dfb987546fcf8fb73b1a5c2b3a018a78"
+dependencies = [
+ "bincode",
+]
 
 [[package]]
 name = "clap"
@@ -296,9 +319,15 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "im_ternary_tree"
-version = "0.0.11"
+version = "0.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5268e0cfed24946ccaf9ec7aa4861e19c9f7bcfcf3c35e55845307acf064bac3"
+checksum = "148c4e9b5a8d46fde17d94b44f205436f7b633db1692591a1b849396d37b37f7"
+
+[[package]]
+name = "im_ternary_tree"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a55470afb2d20e366d19d0b03c5a5e7f868e34debcaf84883aa75b1a54df02b6"
 
 [[package]]
 name = "indexmap"
@@ -560,6 +589,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde"
+version = "1.0.185"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be9b6f69f1dfd54c3b568ffa45c310d6973a5e5148fd40cf515acaf38cf5bc31"
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -647,6 +682,12 @@ name = "unicode-ident"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "301abaae475aa91687eb82514b328ab47a211a533026cb25fc3e519b86adfc3c"
+
+[[package]]
+name = "virtue"
+version = "0.0.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9dcc60c0624df774c82a0ef104151231d37da4962957d691c011c852b2473314"
 
 [[package]]
 name = "walkdir"
