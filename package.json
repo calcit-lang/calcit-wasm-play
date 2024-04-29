@@ -12,6 +12,8 @@
     "vite": "^5.2.10"
   },
   "dependencies": {
-    "@mvc-works/codearea": "^0.0.4"
+    "@calcit/procs": "^0.8.50",
+    "@mvc-works/codearea": "^0.0.4",
+    "bottom-tip": "^0.1.5"
   }
 }
