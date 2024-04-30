@@ -6,6 +6,22 @@
   :files $ {}
     |app.comp.container $ %{} :FileEntry
       :defs $ {}
+        |comp-codearea $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defcomp comp-codearea () $ [] (effect-codearea)
+              textarea $ {}
+                :class-name $ str-spaced css/font-code css/flex style-code
+                :spellcheck false
+                :inner-text "\"code here..."
+                :id "\"code"
+                :on-keydown $ fn (e d!)
+                  when
+                    and
+                      = 13 $ :keycode e
+                      :meta? e
+                      :shift? e
+                    run-calcit!
+                    .!preventDefault $ :event e
         |comp-container $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
@@ -16,7 +32,7 @@
                   state $ or (:data states)
                     {} $ :content "\""
                 div
-                  {} $ :class-name (str-spaced css/preset css/global css/column)
+                  {} $ :class-name (str-spaced css/preset css/fullscreen css/global css/column)
                   div
                     {} $ :class-name (str-spaced css/row-middle style-header)
                     a $ {} (:href "\"http://calcit-lang.org") (:class-name style-logo) (:inner-text "\"Calcit Playground")
@@ -24,18 +40,38 @@
                     a $ {} (:href "\"https://github.com/calcit-lang/calcit/discussions/79#discussioncomment-1653493") (:target "\"_blank") (:inner-text "\"Examples")
                     =< 16 nil
                     button $ {} (:class-name css/button) (:inner-text "\"Run")
-                    <> "\"Read logs in Console"
+                      :on-click $ fn (e d!) (run-calcit!)
+                    =< 8 nil
+                    <> "\"Read logs in Console" style-hint
                   div
                     {} $ :class-name (str-spaced css/expand css/row style-body)
-                    textarea $ {}
-                      :class-name $ str-spaced css/font-code style-code
-                      :spellcheck false
-                      :inner-text "\"code here..."
-                      :value "\"\n println (range 100)\n\n println $ str \"|hello world\"\n\n let\n     fact $ fn (acc x)\n       if (>= x 1)\n         recur (* x acc) (dec x)\n         , acc\n   println $ fact 1 10"
+                    comp-codearea
                     div
-                      {} $ :class-name style-result
+                      {}
+                        :class-name $ str-spaced css/flex css/font-code style-result
+                        :id "\"result"
                       <> "\";; logs in Console, open Console to read"
                   when dev? $ comp-reel (>> states :reel) reel ({})
+        |effect-codearea $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defeffect effect-codearea () (action el at?)
+              when (= action :mount)
+                -> el .-value $ set! initial-code-sample
+                codearea el
+        |initial-code-sample $ %{} :CodeEntry (:doc |)
+          :code $ quote (def initial-code-sample "\"\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n")
+        |run-calcit! $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn run-calcit! () $ let
+                code-el $ js/document.querySelector "\"#code"
+                result-el $ js/document.querySelector "\"#result"
+                code $ .-value code-el
+                _v $ -> result-el .-innerText (set! "\"")
+                start $ js/performance.now
+                result $ run-code code
+                cost $ - (js/performance.now) start
+              -> result-el .-innerText $ set!
+                str (.-innerText result-el) &newline &newline result &newline &newline cost "\"ms"
         |style-body $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-body $ {}
@@ -43,15 +79,22 @@
         |style-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code $ {}
+              "\"&" $ {} (:height "\"100%") (:padding "\"8px")
         |style-header $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-header $ {}
+              "\"&" $ {} (:padding "\"0 8px")
+        |style-hint $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-hint $ {}
+              "\"&" $ {} (:font-style :italic) (:color "\"#aaa")
         |style-logo $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-logo $ {}
         |style-result $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-result $ {}
+              "\"&" $ {} (:background-color "\"#eee") (:padding "\"24px 8px 200px 8px") (:line-height "\"1.4")
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require (respo-ui.css :as css)
@@ -60,6 +103,8 @@
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
             app.config :refer $ dev?
+            "\"../pkg/calcit_wasm_play" :refer $ run-code
+            "\"@mvc-works/codearea" :refer $ codearea
     |app.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
@@ -98,6 +143,9 @@
                   raw $ js/localStorage.getItem (:storage-key config/site)
                 when (some? raw)
                   dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
+              -> (init)
+                .!then $ fn (w) (js/console.log "\"loaded wasm" w)
+              register-log!
               println "|App started."
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -108,6 +156,19 @@
               println "\"Saved at" $ .!toISOString (new js/Date)
               js/localStorage.setItem (:storage-key config/site)
                 format-cirru-edn $ :store @*reel
+        |register-log! $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn register-log! ()
+              js-set js/window "\"_calcit_log" $ fn (content)
+                let
+                    result-el $ js/document.querySelector "\"#result"
+                  -> result-el .-innerText $ set!
+                    str (.-innerText result-el) &newline content
+              js-set js/window "\"_calcit_error" $ fn (content)
+                let
+                    result-el $ js/document.querySelector "\"#result"
+                  -> result-el .-innerText $ set!
+                    str (.-innerText result-el) &newline content
         |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
@@ -132,6 +193,7 @@
             app.config :as config
             "\"./calcit.build-errors" :default build-errors
             "\"bottom-tip" :default hud!
+            "\"../pkg/calcit_wasm_play" :default init
     |app.schema $ %{} :FileEntry
       :defs $ {}
         |store $ %{} :CodeEntry (:doc |)

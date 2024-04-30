@@ -13,3 +13,4 @@
     |Respo/alerts.calcit |main
     |mvc-works/ws-edn.calcit |main
     |Cumulo/cumulo-util.calcit |main
+    |Respo/reel.calcit |main
