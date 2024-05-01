@@ -8,20 +8,21 @@
       :defs $ {}
         |comp-codearea $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defcomp comp-codearea () $ [] (effect-codearea)
-              textarea $ {}
-                :class-name $ str-spaced css/font-code css/flex style-code
-                :spellcheck false
-                :inner-text "\"code here..."
-                :id "\"code"
-                :on-keydown $ fn (e d!)
-                  when
-                    and
-                      = 13 $ :keycode e
-                      :meta? e
-                      :shift? e
-                    run-calcit!
-                    .!preventDefault $ :event e
+            defcomp comp-codearea (s)
+              [] (effect-codearea s)
+                textarea $ {}
+                  :class-name $ str-spaced css/font-code css/flex style-code
+                  :spellcheck false
+                  :inner-text "\"code here..."
+                  :id "\"code"
+                  :on-keydown $ fn (e d!)
+                    when
+                      and
+                        = 13 $ :keycode e
+                        :meta? e
+                        :shift? e
+                      run-calcit!
+                      .!preventDefault $ :event e
         |comp-container $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
@@ -30,34 +31,50 @@
                   states $ :states store
                   cursor $ or (:cursor states) ([])
                   state $ or (:data states)
-                    {} $ :content "\""
+                    {} (:content "\"") (:snippet :range)
                 div
                   {} $ :class-name (str-spaced css/preset css/fullscreen css/global css/column)
-                  div
-                    {} $ :class-name (str-spaced css/row-middle style-header)
-                    a $ {} (:href "\"http://calcit-lang.org") (:class-name style-logo) (:inner-text "\"Calcit Playground")
-                    =< 16 nil
-                    a $ {} (:href "\"https://github.com/calcit-lang/calcit/discussions/79#discussioncomment-1653493") (:target "\"_blank") (:inner-text "\"Examples")
-                    =< 16 nil
-                    button $ {} (:class-name css/button) (:inner-text "\"Run")
-                      :on-click $ fn (e d!) (run-calcit!)
-                    =< 8 nil
-                    <> "\"Read logs in Console" style-hint
+                  comp-nav
                   div
                     {} $ :class-name (str-spaced css/expand css/row style-body)
-                    comp-codearea
+                    comp-tabs
+                      {}
+                        :selected $ :snippet state
+                        :vertical? true
+                      , snippet-tabs $ fn (info d!)
+                        d! cursor $ assoc state :snippet (nth info 1)
+                    comp-codearea $ :snippet state
                     div
                       {}
-                        :class-name $ str-spaced css/flex css/font-code style-result
+                        :class-name $ str-spaced css/expand css/font-code style-result
                         :id "\"result"
                       <> "\";; logs in Console, open Console to read"
                   when dev? $ comp-reel (>> states :reel) reel ({})
+        |comp-nav $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defcomp comp-nav () $ div
+              {} $ :class-name (str-spaced css/row-parted style-header)
+              div
+                {} $ :class-name (str-spaced css/row-middle)
+                <> "\"Playground of"
+                =< 4 nil
+                a $ {} (:href "\"http://calcit-lang.org") (:class-name style-logo) (:target "\"_blank") (:inner-text "\"Calcit")
+                =< 16 nil
+                a $ {} (:href "\"https://github.com/calcit-lang/calcit/discussions/79#discussioncomment-1653493") (:target "\"_blank") (:inner-text "\"Examples")
+                =< 16 nil
+                button $ {} (:class-name css/button) (:inner-text "\"Run")
+                  :on-click $ fn (e d!) (run-calcit!)
+              div ({})
+                a $ {} (:href "\"https://github.com/calcit-lang/calcit-wasm-play") (:target "\"_blank") (:inner-text "\"Git Repo")
         |effect-codearea $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defeffect effect-codearea () (action el at?)
+            defeffect effect-codearea (ss) (action el at?)
               when (= action :mount)
                 -> el .-value $ set! initial-code-sample
                 codearea el
+              when (= action :update)
+                -> el .-value $ set!
+                  either (get snippets ss) initial-code-sample
         |initial-code-sample $ %{} :CodeEntry (:doc |)
           :code $ quote (def initial-code-sample "\"\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n")
         |run-calcit! $ %{} :CodeEntry (:doc |)
@@ -72,32 +89,38 @@
                 cost $ - (js/performance.now) start
               -> result-el .-innerText $ set!
                 str (.-innerText result-el) &newline &newline result &newline &newline cost "\"ms"
+        |snippet-tabs $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def snippet-tabs $ [] (:: :tab :range "\"range") (:: :tab :literals "\"Literals") (:: :tab :list-ops "\"List Ops") (:: :tab :structures "\"Structures") (:: :tab :threads "\"Threads")
+        |snippets $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def snippets $ {} (:range initial-code-sample) (:literals "\"println 1\n\nprintln true false\n\nprintln \"|this is a string\"\n\nprintln :keyword-a\n") (:structures "\"println $ [] 1 2 3 4\n\nprintln $ {}\n  :a 10\n  :b $ [] 20\n  :c $ {}\n    :d true\n\nprintln $ #{} :a :b :c\n\nlet\n    Demo $ defrecord Demo :name :data\n  println \"|special structure a record\"\n    %{} Demo\n      :name |demo\n      :data 1\n") (:list-ops "\"println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ foldl (range 20) 0 &+\n\nprintln $ append (range 10) 11\n\nprintln $ slice (range 10) 4 6\n") (:threads "\"-> (range 10)\n  map $ fn (x) $ * x x\n  foldl 0 &+\n  println\n\n->\n  {}\n    :a 1\n    :b 20\n  map-kv $ fn (k v)\n    [] v k\n  println\n")
         |style-body $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-body $ {}
-              "\"&" $ {} (:overscroll-behavior-y :none) (:overscroll-behavior-x :none)
+              "\"&" $ {} (:overscroll-behavior-y :none) (:overscroll-behavior-x :none) (:padding-left 4)
         |style-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code $ {}
               "\"&" $ {} (:height "\"100%") (:padding "\"8px")
+                :border-color $ hsl 200 80 80
+                :border-radius "\"6px"
+                ; :outline $ str "\"1px solid " (hsl 200 80 60)
         |style-header $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-header $ {}
               "\"&" $ {} (:padding "\"0 8px")
-        |style-hint $ %{} :CodeEntry (:doc |)
-          :code $ quote
-            defstyle style-hint $ {}
-              "\"&" $ {} (:font-style :italic) (:color "\"#aaa")
         |style-logo $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-logo $ {}
         |style-result $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-result $ {}
-              "\"&" $ {} (:background-color "\"#eee") (:padding "\"24px 8px 200px 8px") (:line-height "\"1.4")
+              "\"&" $ {} (:background-color "\"#eee") (:padding "\"24px 8px 200px 8px") (:line-height "\"1.4") (:font-size 13)
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require (respo-ui.css :as css)
+            respo.util.format :refer $ hsl
             respo.css :refer $ defstyle
             respo.core :refer $ defcomp defeffect <> >> div button textarea span input a
             respo.comp.space :refer $ =<
@@ -105,6 +128,7 @@
             app.config :refer $ dev?
             "\"../pkg/calcit_wasm_play" :refer $ run-code
             "\"@mvc-works/codearea" :refer $ codearea
+            respo-ui.comp :refer $ comp-tabs
     |app.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
