@@ -5,3 +5,7 @@ node_modules
 yarn-error.log
 
 .calcit-error.cirru
+
+js-out/
+
+.compact-inc.cirru
