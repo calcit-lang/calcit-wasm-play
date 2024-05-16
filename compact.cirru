@@ -44,7 +44,7 @@
                       , snippet-tabs $ fn (info d!)
                         d! cursor $ assoc state :snippet (nth info 1)
                     comp-codearea $ :snippet state
-                    div
+                    pre
                       {}
                         :class-name $ str-spaced css/expand css/font-code style-result
                         :id "\"result"
@@ -122,7 +122,7 @@
           ns app.comp.container $ :require (respo-ui.css :as css)
             respo.util.format :refer $ hsl
             respo.css :refer $ defstyle
-            respo.core :refer $ defcomp defeffect <> >> div button textarea span input a
+            respo.core :refer $ defcomp defeffect <> >> div button textarea span input a pre
             respo.comp.space :refer $ =<
             reel.comp.reel :refer $ comp-reel
             app.config :refer $ dev?
