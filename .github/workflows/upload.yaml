@@ -30,7 +30,7 @@ jobs:
 
       - uses: calcit-lang/setup-cr@0.0.3
         with:
-          version: '0.8.50'
+          version: '0.9.0-a1'
 
       - run: wasm-pack build -t web
 
@@ -38,7 +38,7 @@ jobs:
 
       - name: "compiles to js"
         run: >
-          caps --ci && cr --emit-js --once
+          caps --ci && cr --once js
           && yarn && yarn vite build --base=./
 
       - name: Deploy to server

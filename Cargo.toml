@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 # calcit = { path="../calcit" }
-calcit = "0.8.50"
+calcit = "0.8.59"
 rpds = "1.1.0"
 im_ternary_tree = "0.0.18"
 wasm-bindgen = "0.2.92"
