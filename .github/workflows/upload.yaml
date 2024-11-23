@@ -28,7 +28,7 @@ jobs:
           node-version: 20
           cache: yarn
 
-      - uses: calcit-lang/setup-cr@0.0.7
+      - uses: calcit-lang/setup-cr@0.0.8
 
       - run: wasm-pack build -t web
 
