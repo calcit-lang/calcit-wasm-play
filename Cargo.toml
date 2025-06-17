@@ -1,19 +1,19 @@
 [package]
 name = "calcit-wasm-play"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # calcit = { path="../calcit" }
-calcit = "0.9.6"
-rpds = "1.1.0"
+calcit = "0.9.13"
+rpds = "1.1.1"
 im_ternary_tree = "0.0.18"
-wasm-bindgen = "0.2.95"
+wasm-bindgen = "0.2.100"
 console_error_panic_hook = "*"
-web-sys = { version = "0.3.72", features = ["console", 'Window'] }
-js-sys = "0.3.72"
+web-sys = { version = "0.3.77", features = ["console", 'Window'] }
+js-sys = "0.3.77"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

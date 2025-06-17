@@ -20,7 +20,6 @@
                       and
                         = 13 $ :keycode e
                         :meta? e
-                        :shift? e
                       run-calcit!
                       .!preventDefault $ :event e
         |comp-container $ %{} :CodeEntry (:doc |)
@@ -71,7 +70,7 @@
             defeffect effect-codearea (ss) (action el at?)
               when (= action :mount)
                 -> el .-value $ set! initial-code-sample
-                codearea el
+                js/setTimeout $ fn () (codearea el)
               when (= action :update)
                 -> el .-value $ set!
                   either (get snippets ss) initial-code-sample
@@ -91,7 +90,7 @@
                 str (.-innerText result-el) &newline &newline result &newline &newline cost "\"ms"
         |snippet-tabs $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def snippet-tabs $ [] (:: :tab :range "\"range") (:: :tab :literals "\"Literals") (:: :tab :list-ops "\"List Ops") (:: :tab :structures "\"Structures") (:: :tab :threads "\"Threads")
+            def snippet-tabs $ [] (:: :tab :range "\"Range") (:: :tab :literals "\"Literals") (:: :tab :list-ops "\"List Ops") (:: :tab :structures "\"Structures") (:: :tab :threads "\"Threads")
         |snippets $ %{} :CodeEntry (:doc |)
           :code $ quote
             def snippets $ {} (:range initial-code-sample) (:literals "\"println 1\n\nprintln true false\n\nprintln \"|this is a string\"\n\nprintln :keyword-a\n") (:structures "\"println $ [] 1 2 3 4\n\nprintln $ {}\n  :a 10\n  :b $ [] 20\n  :c $ {}\n    :d true\n\nprintln $ #{} :a :b :c\n\nlet\n    Demo $ defrecord Demo :name :data\n  println \"|special structure a record\"\n    %{} Demo\n      :name |demo\n      :data 1\n") (:list-ops "\"println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ foldl (range 20) 0 &+\n\nprintln $ append (range 10) 11\n\nprintln $ slice (range 10) 4 6\n") (:threads "\"-> (range 10)\n  map $ fn (x) $ * x x\n  foldl 0 &+\n  println\n\n->\n  {}\n    :a 1\n    :b 20\n  map-kv $ fn (k v)\n    [] v k\n  println\n")
