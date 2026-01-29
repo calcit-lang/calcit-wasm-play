@@ -9,10 +9,10 @@
     "watch": "cargo watch -w src -s 'wasm-pack build -t web'"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "vite": "^7.3.1"
   },
   "dependencies": {
-    "@calcit/procs": "^0.9.13",
+    "@calcit/procs": "^0.10.11",
     "@mvc-works/codearea": "^0.0.4",
     "bottom-tip": "^0.1.5"
   }
