@@ -28,7 +28,7 @@ jobs:
           node-version: 24
           cache: yarn
 
-      - uses: calcit-lang/setup-cr@0.0.8
+      - uses: calcit-lang/setup-cr@0.0.9
 
       - run: wasm-pack build -t web
 
@@ -36,7 +36,7 @@ jobs:
 
       - name: "compiles to js"
         run: >
-          caps --ci && cr --once js
+          caps --ci && cr js
           && yarn && yarn vite build --base=./
 
       - name: Deploy to server
