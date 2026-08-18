@@ -17,22 +17,28 @@
                   :inner-text "|code here..."
                   :id |code
                   :on-keydown $ fn (e d!)
-                    when
-                      and
-                        = 13 $ :keycode e
-                        :meta? e
-                      run-calcit!
-                      .!preventDefault $ :event e
+                    let
+                        keycode $ option:unwrap-or (get e :keycode) 0
+                        meta? $ option:unwrap-or (get e :meta?) false
+                        event $ option:unwrap-or (get e :event) (js-object)
+                      when
+                        and (= 13 keycode) meta?
+                        run-calcit!
+                        .!preventDefault event
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'Dynamic
+              :features $ #{} :js-ffi
         |comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
               let
-                  store $ :store reel
-                  states $ :states store
-                  cursor $ or (:cursor states) ([])
-                  state $ or (:data states)
+                  store $ option:unwrap-or (get reel :store) {}
+                  states $ option:unwrap-or (get reel :states) {}
+                  cursor $ option:unwrap-or (get states :cursor) []
+                  state $ or
+                    option:unwrap-or (get states :data) nil
                     {} (:content |) (:snippet :range)
                 div
                   {} $ :class-name (str-spaced css/preset css/fullscreen css/global css/column)
@@ -41,17 +47,18 @@
                     {} $ :class-name (str-spaced css/expand css/row style-body)
                     comp-tabs
                       {}
-                        :selected $ :snippet state
+                        :selected $ option:unwrap-or (get state :snippet) :range
                         :vertical? true
                       , snippet-tabs $ fn (info d!)
-                        d! cursor $ assoc state :snippet (nth info 1)
-                    comp-codearea $ :snippet state
+                        d! cursor $ assoc state :snippet
+                          option:unwrap-or (nth info 1) :range
+                    comp-codearea $ option:unwrap-or (get state :snippet) :range
                     pre
                       {}
                         :class-name $ str-spaced css/expand css/font-code style-result
                         :id |result
                       <> "|;; logs in Console, open Console to read"
-                  when dev? $ comp-reel (>> states :reel) reel ({})
+                when dev? $ comp-reel (>> states :reel) reel ({})
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-nav $ %{} 'CodeEntry (:doc |)
@@ -80,9 +87,12 @@
                 js/setTimeout $ fn () (codearea el)
               when (= action :update)
                 -> el .-value $ set!
-                  either (get snippets ss) initial-code-sample
+                  option:unwrap-or (get snippets ss) initial-code-sample
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'Dynamic
+              :features $ #{} :js-ffi
         |initial-code-sample $ %{} 'CodeEntry (:doc |)
           :code $ quote (def initial-code-sample "|\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n")
           :examples $ []
@@ -90,17 +100,22 @@
         |run-calcit! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn run-calcit! () $ let
-                code-el $ js/document.querySelector |#code
-                result-el $ js/document.querySelector |#result
-                code $ .-value code-el
-                _v $ -> result-el .-innerText (set! |)
-                start $ js/performance.now
+                code-el $ unsafe-coerce (js/document.querySelector |#code) JsObject
+                result-el $ unsafe-coerce (js/document.querySelector |#result) JsObject
+                code $ unsafe-coerce (.-value code-el) String
+                _v $ set! (.-innerText result-el) |
+                start $ unsafe-coerce (js/performance.now) Number
                 result $ run-code code
-                cost $ - (js/performance.now) start
-              -> result-el .-innerText $ set!
-                str (.-innerText result-el) &newline &newline result &newline &newline cost |ms
+                cost $ -
+                  unsafe-coerce (js/performance.now) Number
+                  , start
+                inner-text $ unsafe-coerce (.-innerText result-el) String
+              set! (.-innerText result-el) (str inner-text &newline &newline result &newline &newline cost |ms)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ []
+              :features $ #{} :js-ffi
         |snippet-tabs $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def snippet-tabs $ [] (:: :tab :range |Range) (:: :tab :literals |Literals) (:: :tab :list-ops "|List Ops") (:: :tab :structures |Structures) (:: :tab :threads |Threads)
@@ -159,7 +174,8 @@
       :defs $ {}
         |dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |release)
+            def dev? $ = |dev
+              option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Dynamic
         |site $ %{} 'CodeEntry (:doc |)
@@ -199,14 +215,18 @@
               flipped js/setInterval 60000 persist-storage!
               let
                   raw $ js/localStorage.getItem (:storage-key config/site)
-                when (some? raw)
-                  dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
+                when (js-present? raw)
+                  dispatch! $ :: :hydrate-storage
+                    parse-cirru-edn $ unsafe-coerce raw String
               -> (init)
                 .!then $ fn (w) (js/console.log "|loaded wasm" w)
               register-log!
               println "|App started."
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ []
+              :features $ #{} :js-ffi
         |mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
@@ -219,22 +239,28 @@
               js/localStorage.setItem (:storage-key config/site)
                 format-cirru-edn $ :store @*reel
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ []
+              :features $ #{} :js-ffi
         |register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn register-log! ()
               js-set js/window |_calcit_log $ fn (content)
                 let
-                    result-el $ js/document.querySelector |#result
-                  -> result-el .-innerText $ set!
-                    str (.-innerText result-el) &newline content
+                    result-el $ unsafe-coerce (js/document.querySelector |#result) JsObject
+                    inner-text $ unsafe-coerce (.-innerText result-el) String
+                  set! (.-innerText result-el) (str inner-text &newline content)
               js-set js/window |_calcit_error $ fn (content)
                 let
-                    result-el $ js/document.querySelector |#result
-                  -> result-el .-innerText $ set!
-                    str (.-innerText result-el) &newline content
+                    result-el $ unsafe-coerce (js/document.querySelector |#result) JsObject
+                    inner-text $ unsafe-coerce (.-innerText result-el) String
+                  set! (.-innerText result-el) (str inner-text &newline content)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ []
+              :features $ #{} :js-ffi
         |reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)

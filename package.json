@@ -14,6 +14,9 @@
   "dependencies": {
     "@calcit/procs": "^0.13.19",
     "@mvc-works/codearea": "^0.0.4",
-    "bottom-tip": "^0.1.5"
+    "bottom-tip": "^0.1.5",
+    "cirru-color": "^0.2.4",
+    "copy-text-to-clipboard": "^3.2.2",
+    "dayjs": "^1.11.13"
   }
 }
