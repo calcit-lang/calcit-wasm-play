@@ -1,6 +1,7 @@
 {
   "name": "calcit-wasm-play",
   "version": "0.0.1",
+  "packageManager": "yarn@4.12.0",
   "description": "Demo of Calcit in WASM",
   "main": "index.js",
   "author": "jiyinyiyong <jiyinyiyong@gmail.com>",
@@ -12,7 +13,7 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
-    "@calcit/procs": "^0.13.19",
+    "@calcit/procs": "^0.13.27",
     "@mvc-works/codearea": "^0.0.4",
     "bottom-tip": "^0.1.5",
     "cirru-color": "^0.2.4",
