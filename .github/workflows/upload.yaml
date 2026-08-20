@@ -5,6 +5,10 @@ on:
 
 name: Upload
 
+concurrency:
+  group: upload-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_and_test:
     name: Test
