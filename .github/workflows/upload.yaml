@@ -1,11 +1,13 @@
 on:
-  push:
-    branches:
-      - main
+  push: {}
 
   pull_request: {}
 
 name: Upload
+
+concurrency:
+  group: upload-${{ github.event.pull_request.head.ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   build_and_test:
@@ -30,8 +32,11 @@ jobs:
 
       - name: "enable Yarn"
         run: |
-          corepack enable
-          corepack prepare yarn@4.12.0 --activate
+          mkdir -p "$RUNNER_TEMP/bin"
+          corepack enable --install-directory "$RUNNER_TEMP/bin"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          yarn --version
 
       - uses: calcit-lang/setup-cr@0.0.9
 
