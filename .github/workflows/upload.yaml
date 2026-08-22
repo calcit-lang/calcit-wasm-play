@@ -38,7 +38,7 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           yarn --version
 
-      - uses: calcit-lang/setup-cr@0.0.9
+      - uses: calcit-lang/setup-calcit@v1
 
       - name: "install modules"
         run: caps --ci
@@ -49,17 +49,17 @@ jobs:
 
       - name: "compiles to js"
         run: |
-          cr calcit.cirru js
+          calcit calcit.cirru js
           yarn vite build --base=./
 
       - name: "validate snapshot and entry"
         run: |
-          cr calcit.cirru edit format
+          calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
-          cr calcit.cirru --check-only
-          cr calcit.cirru analyze check-types --summary-only --format json
-          cr calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic --intent unresolved --summary-only --format json
-          cr calcit.cirru analyze deprecated --summary-only --format json
+          calcit calcit.cirru --check-only
+          calcit calcit.cirru analyze check-types --summary-only --format json
+          calcit calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic --intent unresolved --summary-only --format json
+          calcit calcit.cirru analyze deprecated --summary-only --format json
 
       - name: Deploy to server
         id: deploy
