@@ -38,7 +38,7 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           yarn --version
 
-      - uses: calcit-lang/setup-calcit@v1
+      - uses: calcit-lang/setup-calcit@v1.3.0
 
       - name: "install modules"
         run: caps --ci
