@@ -5,14 +5,14 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
-"@calcit/procs@npm:^0.13.27":
-  version: 0.13.27
-  resolution: "@calcit/procs@npm:0.13.27"
+"@calcit/procs@npm:^0.13.32":
+  version: 0.13.32
+  resolution: "@calcit/procs@npm:0.13.32"
   dependencies:
     "@calcit/ternary-tree": "npm:0.0.26"
     "@cirru/parser.ts": "npm:^0.0.9"
     "@cirru/writer.ts": "npm:^0.1.9"
-  checksum: 10c0/f3f2d1a3dd94797f99bec39cbf722b7d98d0308d0643f861997b1accc44fe68f5922149b268881aae1df4a3524968e3f10c58870358952bd959ff4dddcfd326a
+  checksum: 10c0/87c8bafb6b0188f8310d615dfd5b98106379219f8e6774d5ba6e2877a438c882629f59522726bd8ca18c93b0bab91fbb1dc6111ebc726a870c751fadc3fd32a5
   languageName: node
   linkType: hard
 
@@ -445,7 +445,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "calcit-wasm-play@workspace:."
   dependencies:
-    "@calcit/procs": "npm:^0.13.27"
+    "@calcit/procs": "npm:^0.13.32"
     "@mvc-works/codearea": "npm:^0.0.4"
     bottom-tip: "npm:^0.1.5"
     cirru-color: "npm:^0.2.4"
