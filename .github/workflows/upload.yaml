@@ -41,16 +41,17 @@ jobs:
       - uses: calcit-lang/setup-calcit@v1
 
       - name: "install modules"
-        run: |
-          caps --ci --strict
-          caps verify --toolchain
+        run: caps --ci --strict
+
+      - run: yarn install --immutable
+
+      - name: "verify Calcit toolchain"
+        run: caps verify --toolchain
 
       - name: "check Rust formatting"
         run: cargo fmt --check
 
       - run: wasm-pack build -t web
-
-      - run: yarn install --immutable
 
       - name: "compiles to js"
         run: |
