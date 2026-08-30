@@ -38,10 +38,15 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           yarn --version
 
-      - uses: calcit-lang/setup-calcit@v1.3.0
+      - uses: calcit-lang/setup-calcit@v1
 
       - name: "install modules"
-        run: caps --ci
+        run: |
+          caps --ci --strict
+          caps verify --toolchain
+
+      - name: "check Rust formatting"
+        run: cargo fmt --check
 
       - run: wasm-pack build -t web
 

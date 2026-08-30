@@ -8,16 +8,15 @@ use std::panic;
 use wasm_bindgen::prelude::*;
 
 use calcit::{
+  Calcit, CalcitErr,
   calcit::LocatedWarning,
   call_stack::CallStackList,
   load_core_snapshot, program, runner,
   snapshot::{self, Snapshot},
-  Calcit, CalcitErr,
 };
 
 pub fn eval_code(snippet: String) -> Result<Calcit, String> {
   panic::set_hook(Box::new(console_error_panic_hook::hook));
-  program::clear_all_program_evaled_defs("app.main/main!".into(), "app.main/reload!".into(), false)?;
 
   let core_snapshot = load_core_snapshot()?;
   let mut snapshot = Snapshot::default(); // placeholder data
@@ -40,13 +39,14 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
     let mut prgm = { program::PROGRAM_CODE_DATA.write().unwrap() };
     *prgm = program::extract_program_data(&snapshot)?;
   }
+  program::clear_runtime_caches_for_reload("app.main".into(), "app.main".into(), true)?;
 
   let check_warnings: &RefCell<Vec<LocatedWarning>> = &RefCell::new(vec![]);
 
   // make sure builtin classes are touched
-  runner::preprocess::preprocess_ns_def(
+  runner::preprocess::ensure_ns_def_compiled(
     calcit::calcit::CORE_NS,
-    calcit::calcit::BUILTIN_CLASSES_ENTRY,
+    calcit::calcit::BUILTIN_IMPLS_ENTRY,
     check_warnings,
     &CallStackList::default(),
   )
