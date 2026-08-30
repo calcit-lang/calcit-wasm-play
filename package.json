@@ -1,6 +1,6 @@
 {
   "name": "calcit-wasm-play",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "packageManager": "yarn@4.12.0",
   "description": "Demo of Calcit in WASM",
   "main": "index.js",
