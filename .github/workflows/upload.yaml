@@ -19,7 +19,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly
-          components: clippy
+          components: clippy,rustfmt
 
       - uses: jetli/wasm-pack-action@v0.3.0
         with:
