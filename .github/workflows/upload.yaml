@@ -28,9 +28,9 @@ jobs:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: jetli/wasm-pack-action@f98777369a49686b132a9e8f0fdd59837bf3c3fd # v0.3.0
+      - uses: taiki-e/install-action@e67fa11c4b9316fa714ddf0abed07a0c3143b95b # v2
         with:
-          version: "0.15.0"
+          tool: wasm-pack@0.15.0
 
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
