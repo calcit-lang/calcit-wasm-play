@@ -7,6 +7,9 @@ on:
 
 name: Upload
 
+permissions:
+  contents: read
+
 concurrency:
   group: upload-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
@@ -17,15 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: jetli/wasm-pack-action@v0.3.0
+      - uses: taiki-e/install-action@v2
         with:
-          version: "latest"
+          tool: wasm-pack@0.15.0
 
       - uses: actions/setup-node@v5
         with:
@@ -40,10 +45,13 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           yarn --version
 
-      - uses: calcit-lang/setup-calcit@v1
+      - uses: calcit-lang/setup-calcit@v1.4.0
 
       - name: "install modules"
-        run: caps --ci --strict
+        # Published leaf packages still request the previous compatible Respo
+        # versions. The root pins the migrated releases below, so let Caps use
+        # its normal highest-version resolution instead of rejecting the graph.
+        run: caps --ci
 
       - run: yarn install --immutable
 
