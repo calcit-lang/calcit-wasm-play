@@ -48,7 +48,10 @@ jobs:
       - uses: calcit-lang/setup-calcit@v1.4.0
 
       - name: "install modules"
-        run: caps --ci --strict
+        # Published leaf packages still request the previous compatible Respo
+        # versions. The root pins the migrated releases below, so let Caps use
+        # its normal highest-version resolution instead of rejecting the graph.
+        run: caps --ci
 
       - run: yarn install --immutable
 
