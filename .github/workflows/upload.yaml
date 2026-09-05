@@ -19,7 +19,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.1.0
         with:
           persist-credentials: false
 
@@ -28,11 +28,11 @@ jobs:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@v2.87.5
         with:
           tool: wasm-pack@0.15.0
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v5.0.0
         with:
           node-version: 24
           package-manager-cache: false
@@ -48,10 +48,7 @@ jobs:
       - uses: calcit-lang/setup-calcit@v1.4.0
 
       - name: "install modules"
-        # Published leaf packages still request the previous compatible Respo
-        # versions. The root pins the migrated releases below, so let Caps use
-        # its normal highest-version resolution instead of rejecting the graph.
-        run: caps --ci
+        run: caps --strict --ci
 
       - run: yarn install --immutable
 
