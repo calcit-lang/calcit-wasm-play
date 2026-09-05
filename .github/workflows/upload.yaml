@@ -19,7 +19,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5.1.0
         with:
           persist-credentials: false
 
@@ -28,11 +28,11 @@ jobs:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: taiki-e/install-action@v2
+      - uses: taiki-e/install-action@v2.87.5
         with:
           tool: wasm-pack@0.15.0
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v5.0.0
         with:
           node-version: 24
           package-manager-cache: false
