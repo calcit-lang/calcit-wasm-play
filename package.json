@@ -10,7 +10,7 @@
     "watch": "cargo watch -w src -s 'wasm-pack build -t web'"
   },
   "devDependencies": {
-    "vite": "^7.3.1"
+    "vite": "^8.2.2"
   },
   "dependencies": {
     "@calcit/procs": "0.13.77",

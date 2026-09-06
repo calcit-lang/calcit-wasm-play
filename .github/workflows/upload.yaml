@@ -19,20 +19,20 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@v1
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772 # v1
         with:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: taiki-e/install-action@v2.87.5
+      - uses: taiki-e/install-action@5bf6ce016fd2e72eefc647cbca1e4213f65955b8 # v2.87.5
         with:
           tool: wasm-pack@0.15.0
 
-      - uses: actions/setup-node@v5.0.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 24
           package-manager-cache: false
@@ -45,7 +45,7 @@ jobs:
           export PATH="$RUNNER_TEMP/bin:$PATH"
           yarn --version
 
-      - uses: calcit-lang/setup-calcit@v1.4.0
+      - uses: calcit-lang/setup-calcit@704b3f5cd6f9ce3bd1e0c926dbdd1d181adb8180 # v1.4.0
 
       - name: "install modules"
         run: caps --strict --ci
@@ -73,6 +73,8 @@ jobs:
           calcit calcit.cirru analyze check-types --summary-only --format json
           calcit calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic --intent unresolved --summary-only --format json
           calcit calcit.cirru analyze deprecated --summary-only --format json
+          calcit calcit.cirru analyze dynamic-methods --max 0
+          calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
 
       - name: Deploy to server
         id: deploy
