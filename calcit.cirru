@@ -3,14 +3,20 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native)
-      :reload-fn 'app.main/reload!
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
+        'EditorElementHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait EditorElementHost (:value 'String) (:inner-text 'String)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object)
+            :names $ {} $ :inner-text |innerText
+            :writable $ #{} :inner-text
+          :schema $ :: 'Trait
         'comp-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-codearea (s)
             [] (effect-codearea s)
@@ -48,11 +54,20 @@
                 div
                   {} $ :class-name $ str-spaced css/expand css/row style-body
                   comp-tabs
-                    {}
-                      :selected $ option:unwrap-or (get state :snippet) :range
-                      :vertical? true
+                    respo-ui.schema/make-tabs-options
+                      option:unwrap-or
+                        assert-type (get state :snippet) (:: 'Option 'Tag)
+                        , :range
+                      %some true
+                      %none
+                      %none
                     , snippet-tabs $ fn (info d!)
-                      d! cursor $ assoc state :snippet $ option:unwrap-or (nth info 1) :range
+                      hint-fn $ {}
+                        :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag) 'DynFn
+                        :return 'Unit
+                      match info $
+                        :tab selected label
+                        d!.call cursor $ assoc state :snippet selected
                   comp-codearea $ option:unwrap-or (get state :snippet) :range
                   pre
                     {}
@@ -61,7 +76,8 @@
                     <> "|;; logs in Console, open Console to read"
               when dev? $ comp-reel (>> states :reel) reel $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
         'comp-nav $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-nav ()
             div
@@ -70,11 +86,7 @@
                 {} $ :class-name $ str-spaced css/row-middle
                 <> "|Playground of"
                 =< 4 nil
-                a $ {}
-                  :href |http://calcit-lang.org
-                  :class-name style-logo
-                  :target |_blank
-                  :inner-text |Calcit
+                a $ {} (:href |http://calcit-lang.org) (:class-name style-logo) (:target |_blank) (:inner-text |Calcit)
                 =< 16 nil
                 a $ {}
                   :href |https://github.com/calcit-lang/calcit/discussions/79#discussioncomment-1653493
@@ -84,10 +96,7 @@
                 button $ {} (:class-name css/button) (:inner-text |Run)
                   :on-click $ fn (e d!) (run-calcit!)
               div ({})
-                a $ {}
-                  :href |https://github.com/calcit-lang/calcit-wasm-play
-                  :target |_blank
-                  :inner-text "|Git Repo"
+                a $ {} (:href |https://github.com/calcit-lang/calcit-wasm-play) (:target |_blank) (:inner-text "|Git Repo")
           :examples $ []
           :schema $ :: 'Dynamic
         'effect-codearea $ %{} 'CodeEntry (:doc |)
@@ -108,39 +117,30 @@
         'run-calcit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-calcit! ()
             let
-                code-el $ unsafe-coerce
-                  js/document.querySelector |#code
-                  , JsObject
-                result-el $ unsafe-coerce
-                  js/document.querySelector |#result
-                  , JsObject
+                code-el $ unsafe-coerce (js/document.querySelector |#code) 'app.comp.container/EditorElementHost
+                result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
                 code $ unsafe-coerce (.-value code-el) String
                 _v $ set! (.-innerText result-el) |
-                start $ unsafe-coerce
-                  js/performance.now
-                  , Number
+                start $ unsafe-coerce (js/performance.now) Number
                 result $ run-code code
                 cost $ -
-                  unsafe-coerce
-                    js/performance.now
-                    , Number
+                  unsafe-coerce (js/performance.now) Number
                   , start
                 inner-text $ unsafe-coerce (.-innerText result-el) String
               set! (.-innerText result-el)
                 str inner-text &newline &newline result &newline &newline cost |ms
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'snippet-tabs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def snippet-tabs
-            [] (:: :tab :range |Range) (:: :tab :literals |Literals) (:: :tab :list-ops "|List Ops") (:: :tab :structures |Structures) (:: :tab :threads |Threads)
+            [] (%:: respo-ui.schema/TabRoute :tab :range |Range) (%:: respo-ui.schema/TabRoute :tab :literals |Literals) (%:: respo-ui.schema/TabRoute :tab :list-ops "|List Ops") (%:: respo-ui.schema/TabRoute :tab :structures |Structures) (%:: respo-ui.schema/TabRoute :tab :threads |Threads)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'List $ :: 'respo-ui.schema/TabRoute 'Tag
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def snippets
-            {}
-              :range initial-code-sample
+            {} (:range initial-code-sample)
               :literals "|println 1\n\nprintln true false\n\nprintln \"|this is a string\"\n\nprintln :keyword-a\n"
               :structures "|println $ [] 1 2 3 4\n\nprintln $ {}\n  :a 10\n  :b $ [] 20\n  :c $ {}\n    :d true\n\nprintln $ #{} :a :b :c\n\nlet\n    Demo $ defrecord Demo :name :data\n  println \"|special structure a record\"\n    %{} Demo\n      :name |demo\n      :data 1\n"
               :list-ops "|println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ foldl (range 20) 0 &+\n\nprintln $ append (range 10) 11\n\nprintln $ slice (range 10) 4 6\n"
@@ -149,10 +149,7 @@
           :schema $ :: 'Dynamic
         'style-body $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-body
-            {} $ |& $ {}
-              :overscroll-behavior-y :none
-              :overscroll-behavior-x :none
-              :padding-left 4
+            {} $ |& $ {} (:overscroll-behavior-y :none) (:overscroll-behavior-x :none) (:padding-left 4)
           :examples $ []
           :schema $ :: 'Dynamic
         'style-code $ %{} 'CodeEntry (:doc |)
@@ -174,11 +171,7 @@
           :schema $ :: 'Dynamic
         'style-result $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-result
-            {} $ |& $ {}
-              :background-color |#eee
-              :padding "|24px 8px 200px 8px"
-              :line-height |1.4
-              :font-size 13
+            {} $ |& $ {} (:background-color |#eee) (:padding "|24px 8px 200px 8px") (:line-height |1.4) (:font-size 13)
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -213,7 +206,7 @@
           :code $ quote $ defatom *reel
             -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when
@@ -221,7 +214,9 @@
               js/console.log |Dispatch: op
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -248,37 +243,35 @@
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target
-            js/document.querySelector |.app
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'persist-storage! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn persist-storage! ()
-            println "|Saved at" $ .!toISOString $ new js/Date
-            js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ :store @*reel
+          :code $ quote $ defn mount-target () (js/document.querySelector |.app)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ []
+            :features $ #{} :js-ffi
+        'persist-storage! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn persist-storage! ()
+            println "|Saved at" $ :iso $ date-now-snapshot
+            js/localStorage.setItem (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
+            , &unit
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-log! ()
             js-set js/window |_calcit_log $ fn (content)
               let
-                  result-el $ unsafe-coerce
-                    js/document.querySelector |#result
-                    , JsObject
-                  inner-text $ unsafe-coerce (.-innerText result-el) String
-                set! (.-innerText result-el) (str inner-text &newline content)
+                  result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
+                  inner-text $ unsafe-coerce (.-inner-text result-el) String
+                set! (.-inner-text result-el) (str inner-text &newline content)
             js-set js/window |_calcit_error $ fn (content)
               let
-                  result-el $ unsafe-coerce
-                    js/document.querySelector |#result
-                    , JsObject
-                  inner-text $ unsafe-coerce (.-innerText result-el) String
-                set! (.-innerText result-el) (str inner-text &newline content)
+                  result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
+                  inner-text $ unsafe-coerce (.-inner-text result-el) String
+                set! (.-inner-text result-el) (str inner-text &newline content)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'reload! $ %{} 'CodeEntry (:doc |)
@@ -286,16 +279,19 @@
             if (nil? build-errors)
               do (remove-watch *reel :changes) (clear-cache!)
                 add-watch *reel :changes $ fn (reel prev) (render-app!)
-                reset! *reel $ refresh-reel @*reel schema/store updater
+                reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! (mount-target) (comp-container @*reel) dispatch!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -310,6 +306,7 @@
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
             |../pkg/calcit_wasm_play :default init
+            js-ffi.shared :refer $ date-now-snapshot
     'app.schema $ %{} 'FileEntry
       :defs $ {} $ 'store
         %{} 'CodeEntry (:doc |)
@@ -317,7 +314,7 @@
             {} $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -329,7 +326,8 @@
               (:hydrate-storage data) data
               _ $ do (eprintln "|unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'app.schema/store)
+            :args $ [] 'app.schema/store 'Dynamic 'String 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states

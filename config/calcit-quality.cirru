@@ -14,7 +14,7 @@
       :declaredOptional 0
       :deprecatedCalls 0
       :schemaDynamic 1
-      :typeNone 1
+      :typeNone 0
       :typeNotFull 1
       :unresolved 2
       :unsafeCoerce 0
@@ -51,18 +51,9 @@
       :deprecatedCalls 0
       :schemaDynamic 0
       :typeNone 0
-      :typeNotFull 1
+      :typeNotFull 0
       :unresolved 0
       :unsafeCoerce 6
-    |app.comp.container/snippet-tabs $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 0
-      :typeNotFull 0
-      :unresolved 1
-      :unsafeCoerce 0
     |app.comp.container/snippets $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
@@ -148,10 +139,10 @@
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
+      :schemaDynamic 0
+      :typeNone 0
       :typeNotFull 1
-      :unresolved 1
+      :unresolved 0
       :unsafeCoerce 0
     |app.main/main! $ {} (:codeDynamic 0)
       :codeNil 0
@@ -166,15 +157,6 @@
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/persist-storage! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
       :schemaDynamic 0
       :typeNone 0
       :typeNotFull 1
@@ -186,34 +168,16 @@
       :deprecatedCalls 0
       :schemaDynamic 0
       :typeNone 0
-      :typeNotFull 1
+      :typeNotFull 0
       :unresolved 0
       :unsafeCoerce 4
-    |app.main/reload! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
-    |app.main/render-app! $ {} (:codeDynamic 0)
-      :codeNil 0
-      :declaredOptional 0
-      :deprecatedCalls 0
-      :schemaDynamic 1
-      :typeNone 1
-      :typeNotFull 1
-      :unresolved 1
-      :unsafeCoerce 0
     |app.schema/store $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
       :deprecatedCalls 0
       :schemaDynamic 1
       :typeNone 0
-      :typeNotFull 0
+      :typeNotFull 1
       :unresolved 1
       :unsafeCoerce 0
     |app.updater/updater $ {} (:codeDynamic 0)
@@ -221,7 +185,7 @@
       :declaredOptional 0
       :deprecatedCalls 0
       :schemaDynamic 1
-      :typeNone 1
+      :typeNone 0
       :typeNotFull 1
       :unresolved 1
       :unsafeCoerce 0
@@ -229,10 +193,10 @@
     :codeNil 4
     :declaredOptional 0
     :deprecatedCalls 0
-    :schemaDynamic 19
-    :typeNone 13
-    :typeNotFull 20
-    :unresolved 23
+    :schemaDynamic 14
+    :typeNone 7
+    :typeNotFull 16
+    :unresolved 18
     :unsafeCoerce 12
   :scope $ {} (:includeDependencies false)
     :namespace nil
