@@ -13,7 +13,7 @@
     "vite": "^8.2.2"
   },
   "dependencies": {
-    "@calcit/procs": "0.13.77",
+    "@calcit/procs": "0.14.17",
     "@mvc-works/codearea": "^0.0.4",
     "bottom-tip": "^0.1.5",
     "cirru-color": "^0.2.4",
