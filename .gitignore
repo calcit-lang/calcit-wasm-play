@@ -12,3 +12,5 @@ yarn-error.log
 js-out/
 
 .compact-inc.cirru
+.pnp.cjs
+.pnp.loader.mjs
