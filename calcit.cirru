@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :native) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
       :type-slots $ {}
@@ -58,9 +58,9 @@
                       option:unwrap-or
                         assert-type (get state :snippet) (:: 'Option 'Tag)
                         , :range
-                      %some true
-                      %none
-                      %none
+                      Option :some true
+                      Option :none
+                      Option :none
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ {}
                         :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag) 'DynFn
@@ -98,7 +98,8 @@
               div ({})
                 a $ {} (:href |https://github.com/calcit-lang/calcit-wasm-play) (:target |_blank) (:inner-text "|Git Repo")
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ []
         'effect-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-codearea (ss) (action el at?)
             when (= action :mount)
@@ -113,7 +114,7 @@
         'initial-code-sample $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-code-sample "|\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'run-calcit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-calcit! ()
             let
@@ -146,12 +147,12 @@
               :list-ops "|println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ foldl (range 20) 0 &+\n\nprintln $ append (range 10) 11\n\nprintln $ slice (range 10) 4 6\n"
               :threads "|-> (range 10)\n  map $ fn (x) $ * x x\n  foldl 0 &+\n  println\n\n->\n  {}\n    :a 1\n    :b 20\n  map-kv $ fn (k v)\n    [] v k\n  println\n"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'String
         'style-body $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-body
             {} $ |& $ {} (:overscroll-behavior-y :none) (:overscroll-behavior-x :none) (:padding-left 4)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-code
             {} $ |& $ {} (:height |100%) (:padding |8px)
@@ -159,21 +160,21 @@
               :border-radius |6px
               ; :outline $ str "|1px solid " $ hsl 200 80 60
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-header
             {} $ |& $ {} (:padding "|0 8px")
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-logo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-logo ({})
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         'style-result $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-result
             {} $ |& $ {} (:background-color |#eee) (:padding "|24px 8px 200px 8px") (:line-height |1.4) (:font-size 13)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.css :as css)
@@ -192,12 +193,12 @@
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} $ :storage-key |workflow
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
