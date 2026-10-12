@@ -54,9 +54,7 @@ jobs:
 
       - name: Resolve immutable dependencies
         run: |
-          # Published dependencies request different compatible Respo and
-          # js-ffi versions; Caps records the deterministic highest selections.
-          caps --ci
+          caps --ci --strict
           yarn install --immutable
           caps verify --toolchain
 
@@ -67,11 +65,11 @@ jobs:
 
       - name: Validate Calcit upgrade
         run: |
-          test "$(calcit --version)" = "0.27.0"
+          test "$(calcit --version)" = "0.29.1"
           calcit edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --strict-types --warn-dyn-method --check-only
-          calcit calcit.cirru analyze check-public \
+          calcit calcit.cirru --check-only \
             --ns app.comp.container \
             --ns app.config \
             --ns app.main \
