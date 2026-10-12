@@ -4,6 +4,7 @@ extern crate web_sys;
 
 use std::cell::RefCell;
 use std::panic;
+use std::sync::Once;
 
 use wasm_bindgen::prelude::*;
 
@@ -107,9 +108,12 @@ pub fn console_error(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Cal
 
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
-  calcit::builtins::register_import_proc("println", console_log);
-  calcit::builtins::register_import_proc("eprintln", console_error);
-  calcit::builtins::register_import_proc("echo", console_log);
+  static REGISTER_LOG_PROCS: Once = Once::new();
+  REGISTER_LOG_PROCS.call_once(|| {
+    calcit::builtins::register_import_proc("println", console_log);
+    calcit::builtins::register_import_proc("eprintln", console_error);
+    calcit::builtins::register_import_proc("echo", console_log);
+  });
 
   match eval_code(snippet) {
     Ok(v) => format!("{}", v),
