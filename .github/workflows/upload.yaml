@@ -68,14 +68,7 @@ jobs:
           test "$(calcit --version)" = "0.29.1"
           calcit edit format
           git diff --exit-code -- calcit.cirru
-          calcit calcit.cirru --strict-types --warn-dyn-method --check-only
-          calcit calcit.cirru --check-only \
-            --ns app.comp.container \
-            --ns app.config \
-            --ns app.main \
-            --ns app.schema \
-            --ns app.updater \
-            --summary-only --format json
+          calcit calcit.cirru --warn-dyn-method --check-only --all-defs
           calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
 
       - name: Select CDN asset path

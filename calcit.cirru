@@ -36,48 +36,49 @@
                       .!preventDefault event
                     , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Tag
             :features $ #{} :js-ffi
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ option:unwrap-or (get reel :store) ({})
-                states $ option:unwrap-or (get reel :states) ({})
-                cursor $ option:unwrap-or (get states :cursor) ([])
-                state $ or
-                  option:unwrap-or (get states :data) nil
-                  {} (:content |) (:snippet :range)
+                store $ :store reel
+                states $ :states store
+                cursor $ decode-map-as
+                  option:unwrap-or (get states :cursor) ([])
+                  :: 'List 'Dynamic
+                state $ match (get states :data)
+                  (:some data) (decode-map-as data 'app.schema/SnippetState)
+                  (:none)
+                    %{} schema/SnippetState (:content |) (:snippet :range)
               div
                 {} $ :class-name $ str-spaced css/preset css/fullscreen css/global css/column
                 comp-nav
                 div
                   {} $ :class-name $ str-spaced css/expand css/row style-body
                   comp-tabs
-                    respo-ui.schema/make-tabs-options
-                      option:unwrap-or
-                        assert-type (get state :snippet) (:: 'Option 'Tag)
-                        , :range
-                      Option :some true
-                      Option :none
-                      Option :none
+                    respo-ui.schema/make-tabs-options (:snippet state) (Option :some true) (Option :none) (Option :none)
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ {}
-                        :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag) 'DynFn
+                        :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag)
+                          :: 'Fn $ {} (:return 'Unit)
+                            :args $ [] 'Enum
                         :return 'Unit
                       match info $
                         :tab selected label
-                        d!.call cursor $ assoc state :snippet selected
-                  comp-codearea $ option:unwrap-or (get state :snippet) :range
+                        d! $ :: :states cursor $ {}
+                          :content $ :content state
+                          :snippet selected
+                  comp-codearea $ :snippet state
                   pre
                     {}
                       :class-name $ str-spaced css/expand css/font-code style-result
                       :id |result
                     <> "|;; logs in Console, open Console to read"
-              when dev? $ comp-reel (>> states :reel) reel $ {}
+                when dev? $ comp-reel (>> states :reel) (reel-compat/view-data reel) ({})
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :args $ [] $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
         'comp-nav $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-nav ()
             div
@@ -106,10 +107,12 @@
               -> el .-value $ set! initial-code-sample
               js/setTimeout $ fn () $ codearea el
             when (= action :update)
-              -> el .-value $ set! $ option:unwrap-or (get snippets ss) initial-code-sample
+              -> el .-value $ set! $ option:unwrap-or
+                get snippets $ decode-map-as ss 'Tag
+                , initial-code-sample
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
+            :args $ [] 'Tag
             :features $ #{} :js-ffi
         'initial-code-sample $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-code-sample "|\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n"
@@ -187,12 +190,15 @@
             |../pkg/calcit_wasm_play :refer $ run-code
             |@mvc-works/codearea :refer $ codearea
             respo-ui.comp :refer $ comp-tabs
+            app.schema :as schema
+            reel.typed-compat :as reel-compat
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'Site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def Site
             defstruct Site $ :storage-key 'String
           :examples $ []
+          :schema $ :: 'StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
@@ -209,15 +215,31 @@
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
-            -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+            assert-type (typed/new-reel schema/store) (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
-            when
-              and config/dev? $ not= op :states
-              js/console.log |Dispatch: op
-            reset! *reel $ reel-updater updater @*reel op
+            when config/dev? $ js/console.log |Dispatch: op
+            if (enum? op)
+              match (typed/decode-control op)
+                (:some control)
+                  reset! *reel $ typed/apply-control updater @*reel control
+                (:none)
+                  let
+                      operation $ match op
+                        (:states cursor state)
+                          Option :some $ schema/Op :states
+                            decode-map-as cursor $ :: 'List 'Dynamic
+                            , state
+                        (:hydrate-storage data)
+                          Option :some $ schema/Op :hydrate-storage $ decode-map-as data 'app.schema/Store
+                        _ $ Option :none
+                    match operation
+                      (:some decoded)
+                        reset! *reel $ typed/record-op updater @*reel decoded (generate-id!) (now-ms)
+                      (:none) (eprintln "|unknown op:" op)
+              eprintln "|expected operation enum:" op
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -228,14 +250,14 @@
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
             render-app!
-            add-watch *reel :changes $ fn (reel prev) (render-app!)
+            add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
             js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
             js/window.addEventListener |visibilitychange $ fn (event)
               if
                 = |hidden $ unsafe-coerce js/document.visibilityState String
                 persist-storage!
-            flipped js/setInterval 60000 persist-storage!
+            js/setInterval persist-storage! 60000
             let
                 raw $ js/localStorage.getItem $ :storage-key config/site
               when (js-present? raw)
@@ -258,7 +280,8 @@
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
             js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ :store @*reel
+              format-cirru-edn $ {} $ :states
+                :states $ :store @*reel
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -284,9 +307,9 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (remove-watch *reel :changes) (clear-cache!)
-                add-watch *reel :changes $ fn (reel prev) (render-app!)
-                reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
+              do (remove-watch! *reel :changes) (clear-cache!)
+                add-watch! *reel :changes $ fn (reel prev) (render-app!)
+                reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
@@ -307,21 +330,35 @@
             app.updater :refer $ updater
             app.schema :as schema
             reel.util :refer $ listen-devtools!
-            reel.core :refer $ reel-updater refresh-reel
-            reel.schema :as reel-schema
             app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
             |../pkg/calcit_wasm_play :default init
-            js-ffi.shared :refer $ date-now-snapshot
+            js-ffi.shared :refer $ date-now-snapshot now-ms
+            reel.typed :as typed
     'app.schema $ %{} 'FileEntry
-      :defs $ {} $ 'store
-        %{} 'CodeEntry (:doc |)
+      :defs $ {}
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :hydrate-storage 'app.schema/Store
+          :examples $ []
+          :schema $ :: 'EnumDef
+        'SnippetState $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct SnippetState (:content 'String) (:snippet 'Tag)
+          :examples $ []
+          :schema $ :: 'StructDef
+        'Store $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct Store
+            :states $ :: 'Map 'Tag 'Dynamic
+          :examples $ []
+          :schema $ :: 'StructDef
+        'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            {} $ :states $ {}
+            %{} Store $ :states $ {}
               :cursor $ []
           :examples $ []
-          :schema $ :: 'Map 'Tag 'Dynamic
+          :schema $ :: 'app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -329,12 +366,14 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
-              (:states cursor s) (update-states store cursor s)
+              (:states cursor state)
+                struct-with store $ :states $ decode-map-as
+                  update-state-tree (:states store) cursor state
+                  :: 'Map 'Tag 'Dynamic
               (:hydrate-storage data) data
-              _ $ do (eprintln "|unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/store)
-            :args $ [] 'app.schema/store 'Dynamic 'String 'Number
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
+            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
-          :require $ respo.cursor :refer $ update-states
+          :require $ respo.cursor :refer $ update-state-tree
