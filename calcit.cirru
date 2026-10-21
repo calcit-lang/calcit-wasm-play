@@ -10,13 +10,17 @@
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
-        'EditorElementHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait EditorElementHost (:value 'String) (:inner-text 'String)
+        'append-result! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn append-result! (content)
+            let
+                element $ .unwrap $ browser/query-selector |#result
+                previous $ contract/expect-string |result.innerText $ js/Reflect.get element |innerText
+              js/Reflect.set element |innerText $ str previous &newline content
+            , &unit
           :examples $ []
-          :ffi $ {} (:backend :js) (:kind :external-object)
-            :names $ {} $ :inner-text |innerText
-            :writable $ #{} :inner-text
-          :schema $ :: 'Trait
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'String
+            :features $ #{} :js-ffi
         'comp-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-codearea (s)
             [] (effect-codearea s)
@@ -49,8 +53,7 @@
                   :: 'List 'Dynamic
                 state $ match (get states :data)
                   (:some data) (decode-map-as data 'app.schema/SnippetState)
-                  (:none)
-                    %{} schema/SnippetState (:content |) (:snippet :range)
+                  (:none) (schema/SnippetState :content | :snippet :range)
               div
                 {} $ :class-name $ str-spaced css/preset css/fullscreen css/global css/column
                 comp-nav
@@ -104,12 +107,15 @@
         'effect-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-codearea (ss) (action el at?)
             when (= action :mount)
-              -> el .-value $ set! initial-code-sample
-              js/setTimeout $ fn () $ codearea el
+              browser/element-set-value! (browser/element-host el) initial-code-sample
+              browser/set-timeout!
+                fn () (codearea el) &unit
+                , 0
             when (= action :update)
-              -> el .-value $ set! $ option:unwrap-or
-                get snippets $ decode-map-as ss 'Tag
-                , initial-code-sample
+              browser/element-set-value! (browser/element-host el)
+                .unwrap-or
+                  get snippets $ decode-map-as ss 'Tag
+                  , initial-code-sample
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
             :args $ [] 'Tag
@@ -121,18 +127,14 @@
         'run-calcit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-calcit! ()
             let
-                code-el $ unsafe-coerce (js/document.querySelector |#code) 'app.comp.container/EditorElementHost
-                result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
-                code $ unsafe-coerce (.-value code-el) String
-                _v $ set! (.-innerText result-el) |
-                start $ unsafe-coerce (js/performance.now) Number
-                result $ run-code code
-                cost $ -
-                  unsafe-coerce (js/performance.now) Number
-                  , start
-                inner-text $ unsafe-coerce (.-innerText result-el) String
-              set! (.-innerText result-el)
-                str inner-text &newline &newline result &newline &newline cost |ms
+                code-el $ .unwrap $ browser/query-selector |#code
+                result-el $ .unwrap $ browser/query-selector |#result
+                code $ browser/element-value code-el
+                _v $ js/Reflect.set result-el |innerText |
+                start $ shared/performance-now
+                result $ contract/expect-string |run-code $ run-code code
+                cost $ - (shared/performance-now) start
+              append-result! $ str &newline result &newline &newline cost |ms
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -192,6 +194,9 @@
             respo-ui.comp :refer $ comp-tabs
             app.schema :as schema
             reel.typed-compat :as reel-compat
+            js-ffi.browser :as browser
+            js-ffi.shared :as shared
+            js-ffi.contract :as contract
     'app.config $ %{} 'FileEntry
       :defs $ {}
         'Site $ %{} 'CodeEntry (:doc |)
@@ -215,7 +220,7 @@
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
-            assert-type (typed/new-reel schema/store) (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store)
+            typed/State :base schema/store :store schema/store :records schema/empty-records :pointer (Option :none) :stopped? false :display? false :merged? false
           :examples $ []
           :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
         'dispatch! $ %{} 'CodeEntry (:doc |)
@@ -252,34 +257,37 @@
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
-            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
-            js/window.addEventListener |visibilitychange $ fn (event)
-              if
-                = |hidden $ unsafe-coerce js/document.visibilityState String
-                persist-storage!
-            js/setInterval persist-storage! 60000
-            let
-                raw $ js/localStorage.getItem $ :storage-key config/site
-              when (js-present? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (unsafe-coerce raw String)
+            browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
+            browser/document-add-event-listener! |visibilitychange $ fn (event)
+              match (browser/visibility-state)
+                (:hidden) (persist-storage!)
+                _ &unit
+            browser/set-interval! persist-storage! 60000
+            match
+              browser/storage-get $ :storage-key config/site
+              (:some raw)
+                dispatch! $ :: :hydrate-storage $ parse-cirru-edn raw
+              (:none) &unit
             -> (init)
-              .!then $ fn (w) (js/console.log "|loaded wasm" w)
+              .!then $ fn (w) (js/console.log "|loaded wasm" w) &unit
             register-log!
             println "|App started."
+            , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn mount-target () (js/document.querySelector |.app)
+          :code $ quote $ defn mount-target ()
+            .unwrap $ respo-dom/query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
             :args $ []
             :features $ #{} :js-ffi
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
-            js/localStorage.setItem (:storage-key config/site)
+            browser/storage-set! (:storage-key config/site)
               format-cirru-edn $ {} $ :states
                 :states $ :store @*reel
             , &unit
@@ -290,15 +298,9 @@
         'register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-log! ()
             js-set js/window |_calcit_log $ fn (content)
-              let
-                  result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
-                  inner-text $ unsafe-coerce (.-inner-text result-el) String
-                set! (.-inner-text result-el) (str inner-text &newline content)
+              append-result! $ contract/expect-string |WASM-log content
             js-set js/window |_calcit_error $ fn (content)
-              let
-                  result-el $ unsafe-coerce (js/document.querySelector |#result) 'app.comp.container/EditorElementHost
-                  inner-text $ unsafe-coerce (.-inner-text result-el) String
-                set! (.-inner-text result-el) (str inner-text &newline content)
+              append-result! $ contract/expect-string |WASM-error content
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -326,7 +328,7 @@
         :code $ quote $ ns app.main
           :require
             respo.core :refer $ render! clear-cache!
-            app.comp.container :refer $ comp-container
+            app.comp.container :refer $ comp-container append-result!
             app.updater :refer $ updater
             app.schema :as schema
             reel.util :refer $ listen-devtools!
@@ -336,6 +338,9 @@
             |../pkg/calcit_wasm_play :default init
             js-ffi.shared :refer $ date-now-snapshot now-ms
             reel.typed :as typed
+            js-ffi.contract :as contract
+            js-ffi.browser :as browser
+            respo.ffi.browser :as respo-dom
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
@@ -353,10 +358,13 @@
             :states $ :: 'Map 'Tag 'Dynamic
           :examples $ []
           :schema $ :: 'StructDef
+        'empty-records $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def empty-records ([])
+          :examples $ []
+          :schema $ :: 'List $ :: 'reel.typed/Record 'app.schema/Op
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            %{} Store $ :states $ {}
-              :cursor $ []
+            Store :states $ {} $ :cursor ([])
           :examples $ []
           :schema $ :: 'app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
