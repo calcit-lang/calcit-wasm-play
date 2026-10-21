@@ -1,4 +1,5 @@
 /target
+/.calcit/
 
 /dist
 node_modules

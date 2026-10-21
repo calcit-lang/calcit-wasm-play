@@ -53,7 +53,7 @@
       :typeNone 0
       :typeNotFull 0
       :unresolved 0
-      :unsafeCoerce 6
+      :unsafeCoerce 0
     |app.comp.container/snippets $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
@@ -152,7 +152,7 @@
       :typeNone 0
       :typeNotFull 1
       :unresolved 0
-      :unsafeCoerce 2
+      :unsafeCoerce 0
     |app.main/mount-target $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
@@ -170,7 +170,7 @@
       :typeNone 0
       :typeNotFull 0
       :unresolved 0
-      :unsafeCoerce 4
+      :unsafeCoerce 0
     |app.schema/store $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
@@ -197,7 +197,7 @@
     :typeNone 7
     :typeNotFull 16
     :unresolved 18
-    :unsafeCoerce 12
+    :unsafeCoerce 0
   :scope $ {} (:includeDependencies false)
     :namespace nil
     :namespacePrefix nil

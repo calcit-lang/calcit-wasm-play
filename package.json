@@ -7,6 +7,7 @@
   "author": "jiyinyiyong <jiyinyiyong@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "test": "node --test tests/runtime.test.mjs",
     "compile": "calcit calcit.cirru js",
     "build": "vite build",
     "release": "yarn compile && yarn build",
@@ -17,7 +18,7 @@
     "vite": "8.3.0"
   },
   "dependencies": {
-    "@calcit/procs": "0.29.1",
+    "@calcit/procs": "0.30.1",
     "@mvc-works/codearea": "^0.0.4",
     "bottom-tip": "^0.1.5",
     "cirru-color": "^0.2.4",

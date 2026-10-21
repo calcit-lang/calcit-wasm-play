@@ -4,12 +4,13 @@ extern crate web_sys;
 
 use std::cell::RefCell;
 use std::panic;
-use std::sync::Once;
+use std::sync::{Arc, Once};
 
 use wasm_bindgen::prelude::*;
 
 use calcit::{
-  Calcit, CalcitErr,
+  Calcit, CalcitErr, CalcitTypeAnnotation, ProcTypeSignature,
+  builtins::{RegisteredProcDescriptor, proc_tags},
   calcit::LocatedWarning,
   call_stack::CallStackList,
   load_core_snapshot, program, runner,
@@ -21,15 +22,8 @@ pub fn eval_code(snippet: String) -> Result<Calcit, String> {
 
   let core_snapshot = load_core_snapshot()?;
   let mut snapshot = Snapshot::default(); // placeholder data
-  match snapshot::create_file_from_snippet(&snippet) {
-    Ok(main_file) => {
-      snapshot.files.insert("app.main".into(), main_file);
-    }
-    Err(e) => {
-      web_sys::console::log_1(&JsValue::from_str(&format!("[Error] bad snapshot: {}", e)));
-      panic!("failed snapshot: {}", e)
-    }
-  }
+  let main_file = snapshot::create_file_from_snippet(&snippet).map_err(|error| format!("Bad snapshot: {error}"))?;
+  snapshot.files.insert("app.main".into(), main_file);
   // attach core
   for (k, v) in core_snapshot.files {
     snapshot.files.insert(k.to_owned(), v.to_owned());
@@ -82,7 +76,7 @@ pub fn console_log(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Calci
     .into();
   js_sys::Reflect::apply(&f, &JsValue::null(), &args).unwrap();
 
-  Ok(Calcit::Nil)
+  Ok(Calcit::Unit)
 }
 
 pub fn console_error(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Calcit, CalcitErr> {
@@ -103,16 +97,24 @@ pub fn console_error(xs: Vec<Calcit>, _call_stack: &CallStackList) -> Result<Cal
     .into();
   js_sys::Reflect::apply(&f, &JsValue::null(), &args).unwrap();
 
-  Ok(Calcit::Nil)
+  Ok(Calcit::Unit)
 }
 
 #[wasm_bindgen]
 pub fn run_code(snippet: String) -> String {
   static REGISTER_LOG_PROCS: Once = Once::new();
   REGISTER_LOG_PROCS.call_once(|| {
-    calcit::builtins::register_import_proc("println", console_log);
-    calcit::builtins::register_import_proc("eprintln", console_error);
-    calcit::builtins::register_import_proc("echo", console_log);
+    let descriptor = RegisteredProcDescriptor {
+      type_signature: Some(ProcTypeSignature {
+        arg_types: vec![Arc::new(CalcitTypeAnnotation::Variadic(calcit::calcit::DYNAMIC_TYPE.clone()))],
+        return_type: Arc::new(CalcitTypeAnnotation::Unit),
+      }),
+      tags: proc_tags(["log", "io"]),
+      ..Default::default()
+    };
+    calcit::builtins::register_import_proc_with_descriptor("println", console_log, descriptor.clone());
+    calcit::builtins::register_import_proc_with_descriptor("eprintln", console_error, descriptor.clone());
+    calcit::builtins::register_import_proc_with_descriptor("echo", console_log, descriptor);
   });
 
   match eval_code(snippet) {

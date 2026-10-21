@@ -7,21 +7,19 @@ playground for evaluating small Calcit programs. The application UI is built
 with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
-The migration candidate pairs frontend `deps.cirru` and `@calcit/procs` at
-published Calcit 0.29.1 with a strict, all-formal Respo/UI/Reel/js-ffi graph.
-Unused template dependencies have been removed after reviewing every namespace.
-The frontend entry targets JS/browser, and the embedded Rust evaluator also
-pins published `calcit =0.29.1`. Its browser WASM package builds successfully;
-all five built-in snippets run consecutively in that package with simulated
-browser log callbacks under Node. Host log procs register once per instance,
-as required by the current registration API. Examples now use typed Structs,
-typed map-entry decisions, and list methods instead of retired record syntax
-and legacy aliases. This is evaluator evidence, not browser UI acceptance.
-Application state uses typed Store/Op/SnippetState and typed Reel; the legacy
-Map storage shape and storage key stay unchanged at the persistence boundary.
-Local production-browser acceptance covers all five snippets, consecutive runs,
-tab changes, and refresh restore. Remaining old DOM/log host casts are tracked
-by the unchanged quality budget; this is not complete host-boundary closure.
+The frontend CLI/procs and embedded Rust interpreter pin formal Calcit 0.30.1,
+using formal Reel 0.6.39, UI 0.7.41, Respo 0.16.122 and js-ffi 0.2.3.
+The browser embeds the interpreter without the unrelated WASM code-generation
+backend. The UI keeps its typed Store/Op/SnippetState and legacy Map storage
+format/key. DOM, timing and storage boundaries use checked host APIs instead
+of unsafe coercions; result text retains its existing `innerText` behavior.
+
+Log procs register once with a checked Unit implementation contract. A program
+ending in println/echo/eprintln now returns `&unit`, matching the current CLI,
+instead of the old `nil`. Invalid Cirru syntax returns an error message rather
+than trapping the WASM instance, so the next valid program can still run.
+The runtime tests exercise the actual built WASM with simulated logging callbacks;
+they do not substitute for browser editor, DOM and persistence acceptance.
 
 ### Development
 
@@ -35,7 +33,8 @@ caps verify --toolchain
 Build the embedded runtime:
 
 ```bash
-wasm-pack build -t web
+wasm-pack build -t web -- --locked
+yarn test
 ```
 
 Serve page:
@@ -49,6 +48,7 @@ Validate the Calcit application before publishing:
 
 ```bash
 calcit calcit.cirru --warn-dyn-method --check-only --all-defs
+calcit fix --workflow strict --verify
 calcit calcit.cirru js
 yarn vite build --base=./
 ```
@@ -57,23 +57,30 @@ yarn vite build --base=./
 
 本项目将 Calcit runtime 编译进 WebAssembly，在浏览器内直接执行小段
 Calcit 程序；界面使用 Respo 构建。前端 `deps.cirru` 与 `@calcit/procs`
-迁移候选配对正式 0.29.1，保留实际使用的四个模块并使用一致的正式版本，
-不再保留模板遗留依赖或 alpha。内嵌 Rust evaluator 同步固定正式 0.29.1，
-实际 WASM 构建通过，五个内置示例在 Node 日志回调模拟环境连续执行通过。
-日志 proc 每个实例只注册一次，避免新版注册接口下第二次运行崩溃；示例使用
-带字段类型的 Struct、MapEntryDecision 和列表方法。站点配置改为固定字段 Struct，
-原 storage key 不变，旧 defatom 改为 defref。应用使用 Store/Op/SnippetState 和
-typed Reel；状态从 store 读取，开发面板作为主容器子节点，修复生产页面空白。
-完整严格检查、原质量预算及生产构建通过，真实浏览器五个示例、连续运行、标签切换
-及刷新恢复通过。旧 DOM/日志边界的 12 处强转仍待清理，不声称边界全部收紧；
-本地验收也不能当作远端 COS 或生产部署验收。
+配对正式 0.30.1，内嵌 Rust evaluator 也固定正式 0.30.1。保留实际使用的四个模块，
+使用一致的正式依赖图；解释器不启用本应用未使用的 WASM 代码生成后端，移除两个
+源码未使用的直接 Rust 依赖。
+
+DOM、计时、存档读取的 12 处 unsafe 强转清零，原质量基线的 unsafe 上限同步收紧到 0，
+其他预算不放宽。结果区继续使用 `innerText`；缺失元素、非 String 值在实际宿主边界报错。
+空 Reel 使用公开 State 构造器和具名类型的空记录列表，不再强断言一个未确定的泛型 Op。
+visibilitychange 按浏览器合同监听 document；旧存档形状和 storage key 不变。
+
+日志 proc 每个实例只注册一次，并按当前语言合同返回 Unit；因此以日志结尾的程序结果
+会从旧 `nil` 改为 `&unit`。无效 Cirru 输入不再 panic，而是返回 `Error: Bad snapshot: ...`，
+后续正常程序仍能运行。`yarn test` 用实际 WASM 覆盖日志合同、连续运行和语法错误恢复，
+不新增验证脚本依赖或 compiler fix/proof。五个内置示例在模拟日志宿主中的执行仅证明 evaluator，
+不代表浏览器编辑器、标签切换、刷新恢复或生产部署已经验收。
 
 CI 只把前端 `dist/` 上传到 COS，使用 Action 1.2 自身的 verify，不增加上传校验脚本。
 PR 的 CDN 路径按 PR number / run / attempt 隔离；各 PR 与生产分别排队、不取消在途上传。
 生产发布前查询一次 main HEAD，过期运行跳过 COS 和服务器发布、查询失败则终止。
 原生产 COS prefix 与 `dist/*` 服务器路径不变，Rust/WASM 源码不作为 COS 资源迁移。
-严格全定义门禁、原质量 baseline 和 Rust/WASM 构建保留；移除四份没有失败条件的
-重复清单，不增加测试、compiler fix/proof 或 preset。
+全定义门禁、原质量 baseline 和 Rust/WASM 构建保留，增加完整 strict 与实际 runtime 回归。
+三个 spacer 的 nil 是现有 Respo 可选高度合同；不以零 unsafe 冒充所有边界都已消除。
+
+上游宿主 API 需求见 [js-ffi #184](https://github.com/calcit-lang/js-ffi/issues/184)：
+为真实 `innerText` 语义提供集中类型边界，避免应用重复维护原始属性访问。
 
 ### License
 

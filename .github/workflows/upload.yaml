@@ -54,21 +54,28 @@ jobs:
 
       - name: Resolve immutable dependencies
         run: |
+          set -euo pipefail
           caps --ci --strict
           yarn install --immutable
           caps verify --toolchain
 
       - name: Validate Rust and build WebAssembly
         run: |
+          set -euo pipefail
           cargo fmt --check
-          wasm-pack build -t web
+          wasm-pack build -t web -- --locked
+          yarn test
 
       - name: Validate Calcit upgrade
         run: |
-          test "$(calcit --version)" = "0.29.1"
+          set -euo pipefail
+          test "$(calcit --version)" = "0.30.1"
+          test ! -e compact.cirru
+          test ! -e package.cirru
           calcit edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only --all-defs
+          calcit fix --workflow strict --verify
           calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
 
       - name: Select CDN asset path
