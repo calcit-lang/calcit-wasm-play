@@ -58,6 +58,7 @@ jobs:
           caps --ci --strict
           yarn install --immutable
           caps verify --toolchain
+          git diff --quiet -- deps.cirru package.json yarn.lock .yarnrc.yml
 
       - name: Validate Rust and build WebAssembly
         run: |
@@ -73,9 +74,9 @@ jobs:
           test ! -e compact.cirru
           test ! -e package.cirru
           calcit edit format
-          git diff --exit-code -- calcit.cirru
+          git diff --quiet -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only --all-defs
-          calcit fix --workflow strict --verify
+          calcit fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
           calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
 
       - name: Select CDN asset path
@@ -166,3 +167,10 @@ jobs:
       - name: Display deployment status
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.production-revision.outputs.current == 'true'
         run: echo "${{ steps.deploy.outputs.status }}"
+
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 30

@@ -8,7 +8,7 @@ with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
 The frontend CLI/procs and embedded Rust interpreter pin formal Calcit 0.30.1,
-using formal Reel 0.6.39, UI 0.7.41, Respo 0.16.122 and js-ffi 0.2.3.
+using formal Reel 0.6.42, UI 0.8.1, Respo 0.16.126 and js-ffi 0.2.6.
 The browser embeds the interpreter without the unrelated WASM code-generation
 backend. The UI keeps its typed Store/Op/SnippetState and legacy Map storage
 format/key. DOM, timing and storage boundaries use checked host APIs instead
@@ -54,6 +54,18 @@ yarn vite build --base=./
 ```
 
 ### 中文说明
+
+使用者升级后请重新安装模块、构建并刷新，避免混用旧生成代码。前端和内嵌解释器
+继续配对正式 0.30.1，npm / Cargo 依赖与 lock 不变；不是升级嵌入语言版本。
+五处旧 Option 调用改为 `.unwrap-or`，各 fallback 与取值行为保持；渲染改用
+Respo `render-with!` 的受管理 memo 帧，不改组件树、dispatch 协议或控件布局。
+Tabs 按 UI 0.8.1 的公开 `TabsOptions` 构造器设置原选中项与垂直布局，其余可选
+字段保留默认 none，不再依赖已移除的 `make-tabs-options` 包装函数。
+启动先恢复存档，再首次渲染、注册 watch、离页/隐藏保存和定时器：坏存档不再在
+解析失败前就安装保存副作用，不吞错、不自动清空或覆盖。解析失败仍停止启动，
+可见恢复/导出界面不在本次实现范围；实际坏存档浏览器验收单独受授权范围约束。
+原存档键与形状、60 秒间隔、实际 `hud!`、日志和 WASM 错误文本保持。
+CI 仍保留原质量基线与真实 WASM 测试，不新增预算、重复校验脚本或测试框架。
 
 本项目将 Calcit runtime 编译进 WebAssembly，在浏览器内直接执行小段
 Calcit 程序；界面使用 Respo 构建。前端 `deps.cirru` 与 `@calcit/procs`

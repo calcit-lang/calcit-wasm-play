@@ -31,9 +31,9 @@
                 :id |code
                 :on-keydown $ fn (e d!)
                   let
-                      keycode $ option:unwrap-or (get e :keycode) 0
-                      meta? $ option:unwrap-or (get e :meta?) false
-                      event $ option:unwrap-or (get e :event) (js-object)
+                      keycode $ .unwrap-or (get e :keycode) 0
+                      meta? $ .unwrap-or (get e :meta?) false
+                      event $ .unwrap-or (get e :event) (js-object)
                     when
                       and (= 13 keycode) meta?
                       run-calcit!
@@ -49,7 +49,7 @@
                 store $ :store reel
                 states $ :states store
                 cursor $ decode-map-as
-                  option:unwrap-or (get states :cursor) ([])
+                  .unwrap-or (get states :cursor) ([])
                   :: 'List 'Dynamic
                 state $ match (get states :data)
                   (:some data) (decode-map-as data 'app.schema/SnippetState)
@@ -60,7 +60,9 @@
                 div
                   {} $ :class-name $ str-spaced css/expand css/row style-body
                   comp-tabs
-                    respo-ui.schema/make-tabs-options (:snippet state) (Option :some true) (Option :none) (Option :none)
+                    respo-ui.schema/TabsOptions :selected
+                      Option :some $ :snippet state
+                      , :vertical? $ Option :some true
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ {}
                         :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag)
@@ -206,7 +208,7 @@
           :schema $ :: 'StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -254,6 +256,11 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
+            match
+              browser/storage-get $ :storage-key config/site
+              (:some raw)
+                dispatch! $ :: :hydrate-storage $ parse-cirru-edn raw
+              (:none) &unit
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
             listen-devtools! |k dispatch!
@@ -263,11 +270,6 @@
                 (:hidden) (persist-storage!)
                 _ &unit
             browser/set-interval! persist-storage! 60000
-            match
-              browser/storage-get $ :storage-key config/site
-              (:some raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn raw
-              (:none) &unit
             -> (init)
               .!then $ fn (w) (js/console.log "|loaded wasm" w) &unit
             register-log!
@@ -320,14 +322,16 @@
             :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! (mount-target) (comp-container @*reel) dispatch!
+            render-with! (mount-target)
+              fn () $ comp-container @*reel
+              , dispatch!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache!
+            respo.core :refer $ render-with! clear-cache!
             app.comp.container :refer $ comp-container append-result!
             app.updater :refer $ updater
             app.schema :as schema
