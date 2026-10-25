@@ -109,7 +109,10 @@
         'effect-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-codearea (ss) (action el at?)
             when (= action :mount)
-              browser/element-set-value! (browser/element-host el) initial-code-sample
+              browser/element-set-value! (browser/element-host el)
+                .unwrap-or
+                  get snippets $ decode-map-as ss 'Tag
+                  , initial-code-sample
               browser/set-timeout!
                 fn () (codearea el) &unit
                 , 0
