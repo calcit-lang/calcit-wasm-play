@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op 'Dynamic
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -154,7 +154,7 @@
             {} (:range initial-code-sample)
               :literals "|println 1\n\nprintln true false\n\nprintln \"|this is a string\"\n\nprintln :keyword-a\n"
               :structures "|println $ [] 1 2 3 4\n\nprintln $ {}\n  :a 10\n  :b $ [] 20\n  :c $ {}\n    :d true\n\nprintln $ #{} :a :b :c\n\nlet\n    Demo $ defstruct Demo (:name 'String) (:data 'Number)\n  println \"|special structure a Struct\"\n    %{} Demo\n      :name |demo\n      :data 1\n"
-              :list-ops "|println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ .foldl (range 20) 0 &+\n\nprintln $ .append (range 10) 11\n\nprintln $ .slice (range 10) 4 6\n"
+              :list-ops "|println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ .foldl (range 20) 0 &+\n\nprintln $ .append (range 10) 11\n\nprintln $ .slice (range 10) 4 $ Option :some 6\n"
               :threads "|-> (range 10)\n  map $ fn (x) $ * x x\n  .foldl 0 &+\n  println\n\n->\n  {}\n    :a 1\n    :b 20\n  filter-map-kv $ fn (k v)\n    MapEntryDecision :keep v k\n  println\n"
           :examples $ []
           :schema $ :: 'Map 'Tag 'String

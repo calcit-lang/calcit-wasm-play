@@ -7,8 +7,9 @@ playground for evaluating small Calcit programs. The application UI is built
 with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
-The frontend CLI/procs and embedded Rust interpreter pin formal Calcit 0.30.1,
-using formal Reel 0.6.42, UI 0.8.1, Respo 0.16.126 and js-ffi 0.2.6.
+The frontend CLI/procs and embedded Rust interpreter pin formal Calcit 0.31.0,
+using released Reel 0.7.0-alpha.4, UI 0.9.0-alpha.4, Respo 0.17.0-alpha.4 and js-ffi 0.2.7.
+The UI dependency graph still uses alpha releases; reinstall it as a complete graph.
 The browser embeds the interpreter without the unrelated WASM code-generation
 backend. The UI keeps its typed Store/Op/SnippetState and legacy Map storage
 format/key. DOM, timing and storage boundaries use checked host APIs instead
@@ -33,7 +34,7 @@ caps verify --toolchain
 Build the embedded runtime:
 
 ```bash
-wasm-pack build -t web -- --locked
+RUSTUP_TOOLCHAIN=nightly wasm-pack build -t web -- --locked
 yarn test
 ```
 
@@ -54,6 +55,15 @@ yarn vite build --base=./
 ```
 
 ### 中文说明
+
+本轮前端 CLI/procs 与内嵌 Rust evaluator 同步升级到正式 **0.31.0**，需要重新构建 WASM 和前端后刷新。
+浏览器里执行的语言版本也随之变化；旧示例/用户程序按 0.31.0 语义检查，不承诺旧语法继续兼容。
+UI 模块仍采用已发布 alpha tag，不与旧 0.30.x 图混装。构建沿用原 CI 的 nightly Rust；本地默认的旧 stable 不足以编译新解释器。
+List Ops 示例的 `.slice` 终点改为 `Option :some 6`，保持取索引 4、5（值 4、5）的范围。
+默认入口显式绑定原有 Dynamic dispatch 合同，原 Enum/Op 解码与业务类型保持；不放宽质量预算或删除原真实 WASM 回归。
+存档键、启动恢复顺序、60 秒保存、真实 HUD、COS 前缀和服务器路径不变，不增加验证脚本。
+
+### 历史：0.30.1 迁移说明
 
 使用者升级后请重新安装模块、构建并刷新，避免混用旧生成代码。前端和内嵌解释器
 继续配对正式 0.30.1，npm / Cargo 依赖与 lock 不变；不是升级嵌入语言版本。
