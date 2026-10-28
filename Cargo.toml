@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 # The browser embeds the interpreter, not Calcit's WASM code-generation backend.
-calcit = { version = "=0.30.1", default-features = false }
+calcit = { version = "=0.31.0", default-features = false }
 wasm-bindgen = "0.2.108"
 console_error_panic_hook = "*"
 web-sys = { version = "0.3.85", features = ["console", 'Window'] }
