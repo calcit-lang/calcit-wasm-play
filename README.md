@@ -26,6 +26,14 @@ Rust action v1 含已审阅的上游输入处理/安装更新，其余 tag 核�
 仍用原 nightly 与 CI wasm-pack 0.15.0；本地可用的 wasm-pack 0.13.1 已构建成功，不能替代 Linux 原 CI。
 原 COS 内置 verify、隔离 PR 前缀及 dist-only 生产路径保持，不新增校验脚本。
 
+### 前端产物体积与上传
+
+`dist` 仅包含 HTML、JavaScript 和解释器 WASM 三个运行文件，不上传 `target`、`pkg`、源码或调试目录。日志中超过 100% 的 COSCLI 累计计数不能当成目录里有几十 MiB 的文件；它不等于需要上传的文件总量。
+
+release 构建使用 Cargo 的体积优化 `opt-level = "s"` 与 LTO，并关闭 Rust debuginfo；不删减解释器功能或改变编译器/依赖。此次本地原产物对照：WASM 从 4,053,257 降至 3,155,329 字节（-22.2%），三文件总量从 4,625,551 降至 3,727,623 字节（-19.4%）。这是本地实际构建值，Linux CI 以自己的构建产物为准；原两个真实 WASM 测试、五个页面样例及语法出错后恢复均通过。
+
+COS 继续使用 action 自身的 verify，分块阈值设为 1 MiB，让该 WASM 使用并行分块而非单个大请求，减小失败请求需要重传的数据量。原上传/校验单步上限 10 分钟、独立 PR 前缀、生产 guard 与路径保持；成功构建的原 dist artifact 在后续上传失败时仍保留。上述调整仍须通过实际上传/校验，不将限时失败当作上传成功，也不增加项目侧校验脚本。
+
 Log procs register once with a checked Unit implementation contract. A program
 ending in println/echo/eprintln now returns `&unit`, matching the current CLI,
 instead of the old `nil`. Invalid Cirru syntax returns an error message rather

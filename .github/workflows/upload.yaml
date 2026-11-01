@@ -147,6 +147,7 @@ jobs:
         uses: worktools/cos-upload-action@v1.2.0
         with:
           source-dir: dist
+          part-size: '1'
           bucket: ${{ secrets.COS_BUCKET }}
           region: ap-shanghai
           prefix: ${{ steps.asset-path.outputs.prefix }}
