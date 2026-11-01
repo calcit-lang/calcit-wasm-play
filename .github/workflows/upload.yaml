@@ -100,6 +100,7 @@ jobs:
           echo "base-url=${base_url}" >> "$GITHUB_OUTPUT"
 
       - name: Build web assets with CDN URLs
+        id: web-build
         run: |
           yarn compile
           yarn build
@@ -141,10 +142,12 @@ jobs:
           fi
 
       - name: Upload and verify static assets on COS
+        timeout-minutes: 10
         if: steps.cos-credentials.outputs.available == 'true'
         uses: worktools/cos-upload-action@v1.2.0
         with:
           source-dir: dist
+          part-size: '1'
           bucket: ${{ secrets.COS_BUCKET }}
           region: ap-shanghai
           prefix: ${{ steps.asset-path.outputs.prefix }}
@@ -170,6 +173,7 @@ jobs:
         run: echo "${{ steps.deploy.outputs.status }}"
 
       - uses: actions/upload-artifact@v7.0.2
+        if: ${{ !cancelled() && steps.web-build.outcome == 'success' }}
         with:
           name: runtime-${{ github.run_id }}-${{ github.run_attempt }}
           path: dist
