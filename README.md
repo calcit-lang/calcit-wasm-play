@@ -7,13 +7,24 @@ playground for evaluating small Calcit programs. The application UI is built
 with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
-The frontend CLI/procs and embedded Rust interpreter pin formal Calcit 0.31.0,
-using released Reel 0.7.0-alpha.4, UI 0.9.0-alpha.4, Respo 0.17.0-alpha.4 and js-ffi 0.2.7.
-The UI dependency graph still uses alpha releases; reinstall it as a complete graph.
-The browser embeds the interpreter without the unrelated WASM code-generation
-backend. The UI keeps its typed Store/Op/SnippetState and legacy Map storage
-format/key. DOM, timing and storage boundaries use checked host APIs instead
-of unsafe coercions; result text retains its existing `innerText` behavior.
+使用者影响：前端 CLI / `@calcit/procs` 与浏览器内嵌 Rust 解释器一起升级到正式
+**0.32.1**，需要重新安装完整依赖图、重建 WASM 和前端后刷新；不能只更新 UI。
+用户输入的程序按 0.32.1 检查，旧类型标注语法需要迁移，不承诺旧程序语法继续兼容。
+模块候选图改用正式 Reel **0.7.1**、UI **0.10.0**、Respo **0.18.0**、JS-FFI **0.2.9**
+（传递 Router **0.9.0**）。这些真实 tag 已通过 Caps 严格安装；候选仍需通过原 Linux CI 和评审。
+
+Snapshot 由官方 edit format 迁移到 0.32 类型写法，保留原 typed Store/Op/SnippetState
+和实际受检 Dynamic dispatcher 入口。业务代码不额外改写，不增加 cast 或业务默认值。
+解释器继续只嵌入原 interpreter，不启用无关 WASM 代码生成后端；Cargo lock 只更新 calcit。
+存档形状/key、恢复顺序、60 秒保存、真实 hud!、日志与 innerText 结果显示保持。
+原 strict、全定义和质量基线保留，并只用官方 lower-only 操作收紧既有预算：
+unsafe/schemaDynamic/typeNone/deprecated/codeDynamic 为 0，typeNotFull 16→1、unresolved 18→3、codeNil 4→3。
+剩余 partial 是入口先检查/解码的真实 Dynamic dispatch 合同，不冒充封闭 Op；三个 nil 是原 spacer 参数。
+
+npm 新候选采用一小时包龄，无单包豁免，不重新等待已有锁版本。Actions 改用正式 tag；
+Rust action v1 含已审阅的上游输入处理/安装更新，其余 tag 核对到原实现。
+仍用原 nightly 与 CI wasm-pack 0.15.0；本地可用的 wasm-pack 0.13.1 已构建成功，不能替代 Linux 原 CI。
+原 COS 内置 verify、隔离 PR 前缀及 dist-only 生产路径保持，不新增校验脚本。
 
 Log procs register once with a checked Unit implementation contract. A program
 ending in println/echo/eprintln now returns `&unit`, matching the current CLI,
@@ -56,12 +67,14 @@ yarn vite build --base=./
 
 ### 中文说明
 
-本轮前端 CLI/procs 与内嵌 Rust evaluator 同步升级到正式 **0.31.0**，需要重新构建 WASM 和前端后刷新。
-浏览器里执行的语言版本也随之变化；旧示例/用户程序按 0.31.0 语义检查，不承诺旧语法继续兼容。
-UI 模块仍采用已发布 alpha tag，不与旧 0.30.x 图混装。构建沿用原 CI 的 nightly Rust；本地默认的旧 stable 不足以编译新解释器。
-List Ops 示例的 `.slice` 终点改为 `Option :some 6`，保持取索引 4、5（值 4、5）的范围。
-默认入口显式绑定原有 Dynamic dispatch 合同，原 Enum/Op 解码与业务类型保持；不放宽质量预算或删除原真实 WASM 回归。
-存档键、启动恢复顺序、60 秒保存、真实 HUD、COS 前缀和服务器路径不变，不增加验证脚本。
+当前迁移说明和风险见文首。原两个 Node 回归使用真实构建的 WASM，验证日志 Unit 合同、
+连续执行和语法错误后恢复；它们不代替实际浏览器的编辑器、标签或存档验收。
+
+### 历史：0.31.0 配对
+
+前端与内嵌解释器配对正式0.31.0，模块使用当时已发布 alpha图。
+List Ops 示例 `.slice` 的终点已改为 `Option :some 6`，仍取索引4、5的值；
+Dynamic dispatcher 保留原 Enum/Op解码。该历史结果不计为本轮0.32.1验收。
 
 ### 历史：0.30.1 迁移说明
 

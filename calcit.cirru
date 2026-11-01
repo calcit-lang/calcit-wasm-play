@@ -18,9 +18,7 @@
               js/Reflect.set element |innerText $ str previous &newline content
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Unit) (:features :js-ffi)
         'comp-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-codearea (s)
             [] (effect-codearea s)
@@ -40,9 +38,7 @@
                       .!preventDefault event
                     , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Tag
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Tag (-> respo.schema/Component) (:features :js-ffi)
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -64,11 +60,9 @@
                       Option :some $ :snippet state
                       , :vertical? $ Option :some true
                     , snippet-tabs $ fn (info d!)
-                      hint-fn $ {}
-                        :args $ [] (:: 'respo-ui.schema/TabRoute 'Tag)
-                          :: 'Fn $ {} (:return 'Unit)
-                            :args $ [] 'Enum
-                        :return 'Unit
+                      hint-fn $ Fn (respo-ui.schema/TabRoute Tag)
+                        Fn Enum $ -> Unit
+                        -> Unit
                       match info $
                         :tab selected label
                         d! $ :: :states cursor $ {}
@@ -82,8 +76,7 @@
                     <> "|;; logs in Console, open Console to read"
                 when dev? $ comp-reel (>> states :reel) (reel-compat/view-data reel) ({})
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component)
         'comp-nav $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-nav ()
             div
@@ -104,8 +97,7 @@
               div ({})
                 a $ {} (:href |https://github.com/calcit-lang/calcit-wasm-play) (:target |_blank) (:inner-text "|Git Repo")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ []
+          :schema $ quote $ Fn (-> respo.schema/Component)
         'effect-codearea $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defeffect effect-codearea (ss) (action el at?)
             when (= action :mount)
@@ -122,13 +114,11 @@
                   get snippets $ decode-map-as ss 'Tag
                   , initial-code-sample
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Effect)
-            :args $ [] 'Tag
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Tag (-> respo.schema/Effect) (:features :js-ffi)
         'initial-code-sample $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-code-sample "|\nprintln (range 100)\n\nprintln $ str \"|hello world\"\n\nlet\n    fact $ fn (acc x)\n      if (>= x 1)\n        recur (* x acc) (dec x)\n        , acc\n  println $ fact 1 10\n"
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'run-calcit! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn run-calcit! ()
             let
@@ -141,14 +131,12 @@
                 cost $ - (shared/performance-now) start
               append-result! $ str &newline result &newline &newline cost |ms
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'snippet-tabs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def snippet-tabs
             [] (%:: respo-ui.schema/TabRoute :tab :range |Range) (%:: respo-ui.schema/TabRoute :tab :literals |Literals) (%:: respo-ui.schema/TabRoute :tab :list-ops "|List Ops") (%:: respo-ui.schema/TabRoute :tab :structures |Structures) (%:: respo-ui.schema/TabRoute :tab :threads |Threads)
           :examples $ []
-          :schema $ :: 'List $ :: 'respo-ui.schema/TabRoute 'Tag
+          :schema $ quote $ List (respo-ui.schema/TabRoute Tag)
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def snippets
             {} (:range initial-code-sample)
@@ -157,12 +145,12 @@
               :list-ops "|println $ [] 1 2 3 4\n\nprintln $ range 100\n\nprintln $ .foldl (range 20) 0 &+\n\nprintln $ .append (range 10) 11\n\nprintln $ .slice (range 10) 4 $ Option :some 6\n"
               :threads "|-> (range 10)\n  map $ fn (x) $ * x x\n  .foldl 0 &+\n  println\n\n->\n  {}\n    :a 1\n    :b 20\n  filter-map-kv $ fn (k v)\n    MapEntryDecision :keep v k\n  println\n"
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
         'style-body $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-body
             {} $ |& $ {} (:overscroll-behavior-y :none) (:overscroll-behavior-x :none) (:padding-left 4)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-code
             {} $ |& $ {} (:height |100%) (:padding |8px)
@@ -170,21 +158,21 @@
               :border-radius |6px
               ; :outline $ str "|1px solid " $ hsl 200 80 60
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-header
             {} $ |& $ {} (:padding "|0 8px")
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-logo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-logo ({})
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
         'style-result $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-result
             {} $ |& $ {} (:background-color |#eee) (:padding "|24px 8px 200px 8px") (:line-height |1.4) (:font-size 13)
           :examples $ []
-          :schema $ :: 'String
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.css :as css)
@@ -208,17 +196,17 @@
           :code $ quote $ def Site
             defstruct Site $ :storage-key 'String
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
             = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             %{} Site $ :storage-key |workflow
           :examples $ []
-          :schema $ :: 'app.config/Site
+          :schema $ quote app.config/Site
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
@@ -227,7 +215,7 @@
           :code $ quote $ defref *reel
             typed/State :base schema/store :store schema/store :records schema/empty-records :pointer (Option :none) :stopped? false :display? false :merged? false
           :examples $ []
-          :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
+          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ js/console.log |Dispatch: op
@@ -252,9 +240,7 @@
               eprintln "|expected operation enum:" op
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -279,16 +265,12 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ respo-dom/query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
@@ -297,9 +279,7 @@
                 :states $ :store @*reel
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-log! ()
             js-set js/window |_calcit_log $ fn (content)
@@ -308,9 +288,7 @@
               append-result! $ contract/expect-string |WASM-error content
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -321,16 +299,14 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
               fn () $ comp-container @*reel
               , dispatch!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -352,28 +328,30 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (:: 'List 'Dynamic) 'Dynamic
+            :states
+              quote $ List Dynamic
+              , 'Dynamic
             :hydrate-storage 'app.schema/Store
           :examples $ []
-          :schema $ :: 'EnumDef
+          :schema $ quote EnumDef
         'SnippetState $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct SnippetState (:content 'String) (:snippet 'Tag)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ :: 'Map 'Tag 'Dynamic
+            :states $ quote $ Map Tag Dynamic
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'empty-records $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def empty-records ([])
           :examples $ []
-          :schema $ :: 'List $ :: 'reel.typed/Record 'app.schema/Op
+          :schema $ quote $ List (reel.typed/Record app.schema/Op)
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states $ {} $ :cursor ([])
           :examples $ []
-          :schema $ :: 'app.schema/Store
+          :schema $ quote app.schema/Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -387,8 +365,7 @@
                   :: 'Map 'Tag 'Dynamic
               (:hydrate-storage data) data
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'app.schema/Store)
-            :args $ [] 'app.schema/Store 'app.schema/Op 'String 'Number
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-state-tree
