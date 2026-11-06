@@ -7,30 +7,17 @@ playground for evaluating small Calcit programs. The application UI is built
 with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
-使用者影响：前端 CLI / `@calcit/procs` 与浏览器内嵌 Rust 解释器一起升级到正式
-**0.32.1**，需要重新安装完整依赖图、重建 WASM 和前端后刷新；不能只更新 UI。
-用户输入的程序按 0.32.1 检查，旧类型标注语法需要迁移，不承诺旧程序语法继续兼容。
-模块候选图改用正式 Reel **0.7.1**、UI **0.10.0**、Respo **0.18.0**、JS-FFI **0.2.9**
-（传递 Router **0.9.0**）。这些真实 tag 已通过 Caps 严格安装；候选仍需通过原 Linux CI 和评审。
+前端 CLI、`@calcit/procs` 和浏览器内嵌解释器均使用正式 Calcit **0.35.1**。升级后重装依赖、重建 WASM 和前端，再刷新页面。页面中运行的程序也按 0.35.1 的语法解析和执行。
 
-Snapshot 由官方 edit format 迁移到 0.32 类型写法，保留原 typed Store/Op/SnippetState
-和实际受检 Dynamic dispatcher 入口。业务代码不额外改写，不增加 cast 或业务默认值。
-解释器继续只嵌入原 interpreter，不启用无关 WASM 代码生成后端；Cargo lock 只更新 calcit。
-存档形状/key、恢复顺序、60 秒保存、真实 hud!、日志与 innerText 结果显示保持。
-原 strict、全定义和质量基线保留，并只用官方 lower-only 操作收紧既有预算：
-unsafe/schemaDynamic/typeNone/deprecated/codeDynamic 为 0，typeNotFull 16→1、unresolved 18→3、codeNil 4→3。
-剩余 partial 是入口先检查/解码的真实 Dynamic dispatch 合同，不冒充封闭 Op；三个 nil 是原 spacer 参数。
+模块图使用 Reel **0.9.2**、UI **0.15.1**、Respo **0.19.4** 与 JS-FFI **0.2.13**。组件状态游标使用 Respo 的 `CoordKey`，开发面板使用显式 `Option`。存档沿用原格式和恢复流程，程序日志、运行结果和错误提示仍在页面中显示。
 
-npm 新候选采用一小时包龄，无单包豁免，不重新等待已有锁版本。Actions 改用正式 tag；
-Rust action v1 含已审阅的上游输入处理/安装更新，其余 tag 核对到原实现。
-仍用原 nightly 与 CI wasm-pack 0.15.0；本地可用的 wasm-pack 0.13.1 已构建成功，不能替代 Linux 原 CI。
-原 COS 内置 verify、隔离 PR 前缀及 dist-only 生产路径保持，不新增校验脚本。
+WASM 仍使用原 nightly。Linux CI 使用 wasm-pack 0.15.0，本地用 wasm-pack 0.13.1 验证了锁定依赖的 release 构建。
 
 ### 前端产物体积与上传
 
 `dist` 仅包含 HTML、JavaScript 和解释器 WASM 三个运行文件，不上传 `target`、`pkg`、源码或调试目录。日志中超过 100% 的 COSCLI 累计计数不能当成目录里有几十 MiB 的文件；它不等于需要上传的文件总量。
 
-release 构建使用 Cargo 的体积优化 `opt-level = "s"` 与 LTO，并关闭 Rust debuginfo；不删减解释器功能或改变编译器/依赖。此次本地原产物对照：WASM 从 4,053,257 降至 3,155,329 字节（-22.2%），三文件总量从 4,625,551 降至 3,727,623 字节（-19.4%）。这是本地实际构建值，Linux CI 以自己的构建产物为准；原两个真实 WASM 测试、五个页面样例及语法出错后恢复均通过。
+release 构建使用 Cargo 的体积优化 `opt-level = "s"` 与 LTO，并关闭 Rust debuginfo；保留完整解释器。先前 0.32.1 的本地产物对照：WASM 从 4,053,257 降至 3,155,329 字节（-22.2%），三文件总量从 4,625,551 降至 3,727,623 字节（-19.4%）。这是本地实际构建值，Linux CI 以自己的构建产物为准；原两个真实 WASM 测试、五个页面样例及语法出错后恢复均通过。
 
 COS 继续使用 action 自身的 verify，分块阈值设为 1 MiB，让该 WASM 使用并行分块而非单个大请求，减小失败请求需要重传的数据量。原上传/校验单步上限 10 分钟、独立 PR 前缀、生产 guard 与路径保持；成功构建的原 dist artifact 在后续上传失败时仍保留。上述调整仍须通过实际上传/校验，不将限时失败当作上传成功，也不增加项目侧校验脚本。
 

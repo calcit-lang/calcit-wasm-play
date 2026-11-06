@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op 'Dynamic
+      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -46,7 +46,7 @@
                 states $ :states store
                 cursor $ decode-map-as
                   .unwrap-or (get states :cursor) ([])
-                  :: 'List 'Dynamic
+                  List respo.schema/CoordKey
                 state $ match (get states :data)
                   (:some data) (decode-map-as data 'app.schema/SnippetState)
                   (:none) (schema/SnippetState :content | :snippet :range)
@@ -61,7 +61,7 @@
                       , :vertical? $ Option :some true
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ Fn (respo-ui.schema/TabRoute Tag)
-                        Fn Enum $ -> Unit
+                        Fn AnyEnum $ -> Unit
                         -> Unit
                       match info $
                         :tab selected label
@@ -74,7 +74,9 @@
                       :class-name $ str-spaced css/expand css/font-code style-result
                       :id |result
                     <> "|;; logs in Console, open Console to read"
-                when dev? $ comp-reel (>> states :reel) (reel-compat/view-data reel) ({})
+                if dev?
+                  Option :some $ comp-reel (>> states :reel) (reel-compat/view-data reel) ({})
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component)
         'comp-nav $ %{} 'CodeEntry (:doc |)
@@ -84,14 +86,14 @@
               div
                 {} $ :class-name $ str-spaced css/row-middle
                 <> "|Playground of"
-                =< 4 nil
+                space-x 4
                 a $ {} (:href |http://calcit-lang.org) (:class-name style-logo) (:target |_blank) (:inner-text |Calcit)
-                =< 16 nil
+                space-x 16
                 a $ {}
                   :href |https://github.com/calcit-lang/calcit/discussions/79#discussioncomment-1653493
                   :target |_blank
                   :inner-text |Examples
-                =< 16 nil
+                space-x 16
                 button $ {} (:class-name css/button) (:inner-text |Run)
                   :on-click $ fn (e d!) (run-calcit!)
               div ({})
@@ -179,7 +181,7 @@
             respo.util.format :refer $ hsl
             respo.css :refer $ defstyle
             respo.core :refer $ defcomp defeffect <> >> div button textarea span input a pre
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             reel.comp.reel :refer $ comp-reel
             app.config :refer $ dev?
             |../pkg/calcit_wasm_play :refer $ run-code
@@ -194,7 +196,7 @@
       :defs $ {}
         'Site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def Site
-            defstruct Site $ :storage-key 'String
+            defstruct Site $ :storage-key String
           :examples $ []
           :schema $ quote StructDef
         'dev? $ %{} 'CodeEntry (:doc |)
@@ -228,7 +230,7 @@
                       operation $ match op
                         (:states cursor state)
                           Option :some $ schema/Op :states
-                            decode-map-as cursor $ :: 'List 'Dynamic
+                            decode-map-as cursor $ List respo.schema/CoordKey
                             , state
                         (:hydrate-storage data)
                           Option :some $ schema/Op :hydrate-storage $ decode-map-as data 'app.schema/Store
@@ -326,21 +328,23 @@
             respo.ffi.browser :as respo-dom
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'DispatchOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def DispatchOp (:: :unhandled)
+          :examples $ []
+          :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , 'Dynamic
-            :hydrate-storage 'app.schema/Store
+            :states (List respo.schema/CoordKey) Dynamic
+            :hydrate-storage app.schema/Store
           :examples $ []
           :schema $ quote EnumDef
         'SnippetState $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct SnippetState (:content 'String) (:snippet 'Tag)
+          :code $ quote $ defstruct SnippetState (:content String) (:snippet Tag)
           :examples $ []
           :schema $ quote StructDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store
-            :states $ quote $ Map Tag Dynamic
+            :states $ Map Tag Dynamic
           :examples $ []
           :schema $ quote StructDef
         'empty-records $ %{} 'CodeEntry (:doc |)
@@ -362,7 +366,7 @@
               (:states cursor state)
                 struct-with store $ :states $ decode-map-as
                   update-state-tree (:states store) cursor state
-                  :: 'Map 'Tag 'Dynamic
+                  Map Tag Dynamic
               (:hydrate-storage data) data
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
