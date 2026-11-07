@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -61,13 +61,11 @@
                       , :vertical? $ Option :some true
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ Fn (respo-ui.schema/TabRoute Tag)
-                        Fn AnyEnum $ -> Unit
+                        Fn app.schema/Op $ -> Unit
                         -> Unit
                       match info $
                         :tab selected label
-                        d! $ :: :states cursor $ {}
-                          :content $ :content state
-                          :snippet selected
+                        d! $ schema/Op :select-snippet cursor $ schema/SnippetState :content (:content state) :snippet selected
                   comp-codearea $ :snippet state
                   pre
                     {}
@@ -221,28 +219,34 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ js/console.log |Dispatch: op
-            if (enum? op)
-              match (typed/decode-control op)
-                (:some control)
-                  reset! *reel $ typed/apply-control updater @*reel control
+            cond
+                = (enum-definition op) (Option :some schema/Op)
+                dispatch-resolved! $ decode-map-as op 'app.schema/Op
+              (= (enum-definition op) (Option :some typed/Control))
+                dispatch-resolved! $ decode-map-as op 'reel.typed/Control
+              true $ match (typed/decode-control op)
+                (:some control) (dispatch-resolved! control)
                 (:none)
-                  let
-                      operation $ match op
-                        (:states cursor state)
-                          Option :some $ schema/Op :states
-                            decode-map-as cursor $ List respo.schema/CoordKey
-                            , state
-                        (:hydrate-storage data)
-                          Option :some $ schema/Op :hydrate-storage $ decode-map-as data 'app.schema/Store
-                        _ $ Option :none
-                    match operation
-                      (:some decoded)
-                        reset! *reel $ typed/record-op updater @*reel decoded (generate-id!) (now-ms)
-                      (:none) (eprintln "|unknown op:" op)
-              eprintln "|expected operation enum:" op
+                  match op
+                    (:states cursor state)
+                      dispatch-resolved! $ schema/Op :states
+                        decode-map-as cursor $ List respo.schema/CoordKey
+                        , state
+                    (:hydrate-storage data)
+                      dispatch-resolved! $ schema/Op :hydrate-storage $ decode-map-as data 'app.schema/Store
+                    _ $ eprintln "|unknown op:" op
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
+        'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-resolved! (op)
+            hint-fn $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+            reset! *reel $ match op
+              (reel.typed/Control control) (typed/apply-control updater @*reel control)
+              (app.schema/Op action)
+                typed/record-op updater @*reel action (generate-id!) (now-ms)
+            , &unit
+          :examples $ []
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -334,10 +338,15 @@
           :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
+            :select-snippet (List respo.schema/CoordKey) app.schema/SnippetState
             :states (List respo.schema/CoordKey) Dynamic
             :hydrate-storage app.schema/Store
           :examples $ []
           :schema $ quote EnumDef
+        'ResolvedOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResolvedOp Op reel.typed/Control
+          :examples $ []
+          :schema $ quote UnionDef
         'SnippetState $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct SnippetState (:content String) (:snippet Tag)
           :examples $ []
@@ -363,6 +372,10 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
+              (:select-snippet cursor state)
+                struct-with store $ :states $ decode-map-as
+                  update-state-tree (:states store) cursor $ &struct:to-map state
+                  Map Tag Dynamic
               (:states cursor state)
                 struct-with store $ :states $ decode-map-as
                   update-state-tree (:states store) cursor state
