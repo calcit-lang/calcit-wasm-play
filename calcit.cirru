@@ -231,20 +231,28 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
-            match
-              browser/storage-get $ :storage-key config/site
-              (:some raw)
-                dispatch! $ schema/Op :hydrate-storage $ decode-map-as (parse-cirru-edn raw) 'app.schema/Store
-              (:none) &unit
-            render-app!
-            add-watch! *reel :changes $ fn (reel prev) (render-app!)
-            listen-devtools! |k on-reel-control!
-            browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
-            browser/document-add-event-listener! |visibilitychange $ fn (event)
-              match (browser/visibility-state)
-                (:hidden) (persist-storage!)
-                _ &unit
-            browser/set-interval! persist-storage! 60000
+            let
+                restored $ match
+                  browser/storage-get $ :storage-key config/site
+                  (:some raw) (restore-storage! raw)
+                  (:none) (Result :ok &unit)
+              render-app!
+              add-watch! *reel :changes $ fn (reel prev) (render-app!)
+              listen-devtools! |k on-reel-control!
+              match restored
+                (:ok _)
+                  do
+                    browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
+                    browser/document-add-event-listener! |visibilitychange $ fn (event)
+                      match (browser/visibility-state)
+                        (:hidden) (persist-storage!)
+                        _ &unit
+                    browser/set-interval! persist-storage! 60000
+                    , &unit
+                (:err error)
+                  do
+                    hud! |error $ str "|Could not restore saved state. Automatic saving is paused: " error
+                    , &unit
             -> (init)
               .!then $ fn (w) (js/console.log "|loaded wasm" w) &unit
             register-log!
@@ -270,6 +278,20 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+        'read-saved-store $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-saved-store (raw)
+            match (raw.parse-cirru-edn)
+              (:ok data) (try-decode-map-as data 'app.schema/Store)
+              (:err error) (Result :err error)
+          :examples $ []
+          :schema $ quote $ Fn String
+            -> $ Result app.schema/Store String
+          :tests $ [] $ %{} 'TestEntry (:name |validates-saved-store)
+            :code $ quote $ do
+              assert= true $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([]))))"
+              assert= false $ .ok? $ read-saved-store "|{} (:states false)"
+              assert= false $ .ok? $ read-saved-store "|)"
+            :tags $ #{} :unit
         'register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-log! ()
             js-set js/window |_calcit_log $ fn (content)
@@ -301,6 +323,18 @@
                 dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
+        'restore-storage! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn restore-storage! (raw)
+            match (read-saved-store raw)
+              (:ok store)
+                do
+                  dispatch! $ schema/Op :hydrate-storage store
+                  Result :ok &unit
+              (:err error) (Result :err error)
+          :examples $ []
+          :schema $ quote $ Fn String
+            -> $ Result Unit String
+            :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
