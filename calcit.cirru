@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -40,7 +40,7 @@
           :examples $ []
           :schema $ quote $ Fn Tag (-> respo.schema/Component) (:features :js-ffi)
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control)
             let
                 store $ :store reel
                 states $ :states store
@@ -73,10 +73,12 @@
                       :id |result
                     <> "|;; logs in Console, open Console to read"
                 if dev?
-                  Option :some $ comp-reel (>> states :reel) (reel-compat/view-data reel) ({})
+                  Option :some $ comp-controlled-reel reel ({}) on-control
                   Option :none
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component)
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
+            Fn reel.typed/Control $ -> Unit
+            -> respo.schema/Component
         'comp-nav $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-nav ()
             div
@@ -180,13 +182,12 @@
             respo.css :refer $ defstyle
             respo.core :refer $ defcomp defeffect <> >> div button textarea span input a pre
             respo.comp.space :refer $ space-x
-            reel.comp.reel :refer $ comp-reel
+            reel.comp.reel :refer $ comp-controlled-reel
             app.config :refer $ dev?
             |../pkg/calcit_wasm_play :refer $ run-code
             |@mvc-works/codearea :refer $ codearea
             respo-ui.comp :refer $ comp-tabs
             app.schema :as schema
-            reel.typed-compat :as reel-compat
             js-ffi.browser :as browser
             js-ffi.shared :as shared
             js-ffi.contract :as contract
@@ -219,34 +220,13 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ js/console.log |Dispatch: op
-            cond
-                = (enum-definition op) (Option :some schema/Op)
-                dispatch-resolved! $ decode-map-as op 'app.schema/Op
-              (= (enum-definition op) (Option :some typed/Control))
-                dispatch-resolved! $ decode-map-as op 'reel.typed/Control
-              true $ match (typed/decode-control op)
-                (:some control) (dispatch-resolved! control)
-                (:none)
-                  match op
-                    (:states cursor state)
-                      dispatch-resolved! $ schema/Op :states
-                        decode-map-as cursor $ List respo.schema/CoordKey
-                        , state
-                    (:hydrate-storage data)
-                      dispatch-resolved! $ schema/Op :hydrate-storage $ decode-map-as data 'app.schema/Store
-                    _ $ eprintln "|unknown op:" op
-            , &unit
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
-        'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch-resolved! (op)
-            hint-fn $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
             reset! *reel $ match op
               (reel.typed/Control control) (typed/apply-control updater @*reel control)
               (app.schema/Op action)
                 typed/record-op updater @*reel action (generate-id!) (now-ms)
             , &unit
           :examples $ []
+          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -254,11 +234,11 @@
             match
               browser/storage-get $ :storage-key config/site
               (:some raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn raw
+                dispatch! $ schema/Op :hydrate-storage $ decode-map-as (parse-cirru-edn raw) 'app.schema/Store
               (:none) &unit
             render-app!
             add-watch! *reel :changes $ fn (reel prev) (render-app!)
-            listen-devtools! |k dispatch!
+            listen-devtools! |k on-reel-control!
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             browser/document-add-event-listener! |visibilitychange $ fn (event)
               match (browser/visibility-state)
@@ -277,6 +257,10 @@
             .unwrap $ respo-dom/query-selector |.app
           :examples $ []
           :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
+        'on-reel-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-reel-control! (control) (dispatch! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
@@ -309,8 +293,12 @@
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
-              fn () $ comp-container @*reel
-              , dispatch!
+              fn ()
+                hint-fn $ Fn $ -> respo.schema/Component
+                comp-container @*reel on-reel-control!
+              fn (op)
+                hint-fn $ Fn app.schema/Op $ -> Unit
+                dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
       :ns $ %{} 'NsEntry (:doc |)
@@ -332,14 +320,9 @@
             respo.ffi.browser :as respo-dom
     'app.schema $ %{} 'FileEntry
       :defs $ {}
-        'DispatchOp $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def DispatchOp (:: :unhandled)
-          :examples $ []
-          :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
             :select-snippet (List respo.schema/CoordKey) app.schema/SnippetState
-            :states (List respo.schema/CoordKey) Dynamic
             :hydrate-storage app.schema/Store
           :examples $ []
           :schema $ quote EnumDef
@@ -375,10 +358,6 @@
               (:select-snippet cursor state)
                 struct-with store $ :states $ decode-map-as
                   update-state-tree (:states store) cursor $ &struct:to-map state
-                  Map Tag Dynamic
-              (:states cursor state)
-                struct-with store $ :states $ decode-map-as
-                  update-state-tree (:states store) cursor state
                   Map Tag Dynamic
               (:hydrate-storage data) data
           :examples $ []
