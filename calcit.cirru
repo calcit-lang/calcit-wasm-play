@@ -305,6 +305,8 @@
               assert= false $ .ok? $ read-saved-store "|{} (:states false)"
               assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:data false)))"
               assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([] :branch))))"
+              assert= (Result :ok schema/store)
+                read-saved-store $ write-saved-store schema/store
               match
                 read-saved-store "|{} (:states ({} (:cursor ([])) (:data ({} (:content |sample) (:snippet :range)))))"
                 (:ok saved)
