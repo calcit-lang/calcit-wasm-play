@@ -51,8 +51,8 @@
                   {} $ :class-name $ str-spaced css/expand css/row style-body
                   comp-tabs
                     respo-ui.schema/TabsOptions :selected
-                      Option :some $ :snippet state
-                      , :vertical? $ Option :some true
+                      Some $ :snippet state
+                      , :vertical? $ Some true
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ Fn (respo-ui.schema/TabRoute Tag)
                         Fn app.schema/Op $ -> Unit
@@ -67,10 +67,10 @@
                       :id |result
                     <> "|;; logs in Console, open Console to read"
                 if dev?
-                  Option :some $ comp-controlled-reel reel ({}) on-control
-                  Option :none
+                  Some $ comp-controlled-reel reel ({}) on-control
+                  , None
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
+          :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
             Fn reel.typed/Control $ -> Unit
             -> respo.schema/Component
         'comp-nav $ %{} 'CodeEntry (:doc |)
@@ -201,16 +201,16 @@
           :code $ quote $ def site
             %{} Site $ :storage-key |workflow
           :examples $ []
-          :schema $ quote app.config/Site
+          :schema $ quote Site
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel
-            typed/State :base schema/store :store schema/store :records schema/empty-records :pointer (Option :none) :stopped? false :display? false :merged? false
+            typed/State :base schema/store :store schema/store :records schema/empty-records :pointer None :stopped? false :display? false :merged? false
           :examples $ []
-          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
+          :schema $ quote $ Ref (typed/State schema/Op schema/Store)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ js/console.log |Dispatch: op
@@ -220,7 +220,7 @@
                 typed/record-op updater @*reel action (generate-id!) (now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -262,7 +262,7 @@
         'on-reel-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-reel-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
@@ -276,29 +276,34 @@
             match (raw.parse-cirru-edn)
               (:ok data)
                 match
-                  try-decode-map-as data $ Map Tag $ Map Tag Dynamic
+                  try-decode-map-as data $ Map Tag $ Map Tag app.schema/SavedStateValue
                   (:ok root)
                     match (get root :states)
                       (:some states)
-                        if
-                          and
-                            .empty? $ .dissoc (.dissoc states :cursor) :data
-                            = ([])
-                              .unwrap-or (get states :cursor) ([])
-                          match (get states :data)
-                            (:some fields)
-                              match (try-decode-map-as fields 'app.schema/SnippetState)
-                                (:ok state)
-                                  Result :ok $ schema/Store :snippet-state $ Option :some state
-                                (:err error) (Result :err error)
-                            (:none) (Result :ok schema/store)
-                          Result :err |Unsupported-playground-state-tree
+                        let
+                            empty-cursor? $ .unwrap-or
+                              .map (get states :cursor)
+                                fn (cursor)
+                                  match cursor
+                                    (List path) (.empty? path)
+                                    (app.schema/SnippetState _) false
+                              , true
+                          if
+                            and empty-cursor? $ .empty? $ .dissoc (.dissoc states :cursor) :data
+                            match (get states :data)
+                              (:some value)
+                                match value
+                                  (app.schema/SnippetState state)
+                                    Result :ok $ schema/Store :snippet-state $ Some state
+                                  (List _) (Result :err |Invalid-playground-snippet)
+                              (:none) (Result :ok schema/store)
+                            Result :err |Unsupported-playground-state-tree
                       (:none) (Result :err |Missing-playground-states)
                   (:err error) (Result :err error)
               (:err error) (Result :err error)
           :examples $ []
           :schema $ quote $ Fn String
-            -> $ Result app.schema/Store String
+            -> $ Result schema/Store String
           :tests $ [] $ %{} 'TestEntry (:name |validates-saved-store)
             :code $ quote $ do
               assert= true $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([]))))"
@@ -370,7 +375,7 @@
                     :cursor $ []
                     :data $ &struct:to-map state
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store (-> String)
+          :schema $ quote $ Fn schema/Store (-> String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -398,6 +403,10 @@
           :code $ quote $ defunion ResolvedOp Op reel.typed/Control
           :examples $ []
           :schema $ quote UnionDef
+        'SavedStateValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion SavedStateValue (List Tag) app.schema/SnippetState
+          :examples $ []
+          :schema $ quote UnionDef
         'SnippetState $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct SnippetState (:content String) (:snippet Tag)
           :examples $ []
@@ -410,12 +419,11 @@
         'empty-records $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def empty-records ([])
           :examples $ []
-          :schema $ quote $ List (reel.typed/Record app.schema/Op)
+          :schema $ quote $ List (reel.typed/Record Op)
         'store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def store
-            Store :snippet-state $ Option :none
+          :code $ quote $ def store (Store :snippet-state None)
           :examples $ []
-          :schema $ quote app.schema/Store
+          :schema $ quote Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -424,7 +432,7 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:select-snippet state)
-                struct-with store $ :snippet-state $ Option :some state
+                struct-with store $ :snippet-state $ Some state
               (:hydrate-storage data) data
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)

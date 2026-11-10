@@ -71,14 +71,16 @@ jobs:
       - name: Validate Calcit upgrade
         run: |
           set -euo pipefail
-          test "$(calcit --version)" = "0.40.0"
+          test "$(calcit --version)" = "0.41.0"
           test ! -e compact.cirru
           test ! -e package.cirru
           calcit edit format
           git diff --quiet -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only --all-defs
           calcit fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
-          calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
+          calcit analyze weak-types --summary-only --format json | jq -e '.data.summary.hits == 0'
+          calcit analyze weak-types --only coverage --coverage-level none,partial --summary-only --format json | jq -e '.data.summary.definitions == 0'
+          calcit analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
           calcit calcit.cirru test --require-match
 
       - name: Select CDN asset path

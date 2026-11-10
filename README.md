@@ -7,9 +7,9 @@ playground for evaluating small Calcit programs. The application UI is built
 with Respo, while the evaluator itself runs locally in the browser without a
 server round trip.
 
-前端 CLI、`@calcit/procs` 和浏览器内嵌解释器均使用正式 Calcit **0.40.0**。升级后重装依赖、重建 WASM 和前端，再刷新页面。页面中运行的程序也按 0.40.0 的语法解析和执行。
+前端 CLI、`@calcit/procs` 和浏览器内嵌解释器均使用正式 Calcit **0.41.0**。升级后重装依赖、重建 WASM 和前端，再刷新页面。页面中运行的程序也按 0.41.0 的语法解析和执行。
 
-模块图使用 Reel **0.11.0**、UI **0.15.2**、Respo **0.19.5** 与 JS-FFI **0.2.13**。标签切换使用具名的 `SnippetState`，内部用 `Op | reel.typed/Control` 区分应用操作和开发面板回放。应用生成的历史存档沿用原格式。无法识别的手工存档保留原文，并暂停自动保存。程序日志、运行结果和错误提示仍在页面中显示。
+模块图使用 Reel **0.11.0**、UI **0.15.2**、Respo **0.19.5** 与 JS-FFI **0.2.13**。标签切换使用具名的 `SnippetState`，内部用 `Op | reel.typed/Control` 区分应用操作和开发面板回放。应用生成的历史存档沿用原格式，读取时校验游标列表和示例状态。无法识别的手工存档保留原文，并暂停自动保存。程序日志、运行结果和错误提示仍在页面中显示。
 
 WASM 仍使用原 nightly。Linux CI 使用 wasm-pack 0.15.0，本地用 wasm-pack 0.13.1 验证了锁定依赖的 release 构建。
 
