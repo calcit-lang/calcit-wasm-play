@@ -55,7 +55,7 @@
                       , :vertical? $ Some true
                     , snippet-tabs $ fn (info d!)
                       hint-fn $ Fn (respo-ui.schema/TabRoute Tag)
-                        Fn app.schema/Op $ -> Unit
+                        Fn schema/Op $ -> Unit
                         -> Unit
                       match info $
                         :tab selected label
@@ -355,7 +355,7 @@
                 hint-fn $ Fn $ -> respo.schema/Component
                 comp-container @*reel on-reel-control!
               fn (op)
-                hint-fn $ Fn app.schema/Op $ -> Unit
+                hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! op
           :examples $ []
           :schema $ quote $ Fn (-> Unit)
