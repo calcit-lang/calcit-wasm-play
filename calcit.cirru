@@ -304,23 +304,30 @@
           :examples $ []
           :schema $ quote $ Fn String
             -> $ Result schema/Store String
-          :tests $ [] $ %{} 'TestEntry (:name |validates-saved-store)
-            :code $ quote $ do
-              assert= true $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([]))))"
-              assert= false $ .ok? $ read-saved-store "|{} (:states false)"
-              assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:data false)))"
-              assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([] :branch))))"
-              assert= (Result :ok schema/store)
-                read-saved-store $ write-saved-store schema/store
-              match
-                read-saved-store "|{} (:states ({} (:cursor ([])) (:data ({} (:content |sample) (:snippet :range)))))"
-                (:ok saved)
-                  do
-                    assert= :range $ :snippet $ .unwrap (:snippet-state saved)
-                    assert= (Result :ok saved)
-                      read-saved-store $ write-saved-store saved
-                (:err error) (raise error)
-            :tags $ #{} :unit
+          :tests $ []
+            %{} 'TestEntry (:name |validates-saved-store)
+              :code $ quote $ do
+                assert= true $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([]))))"
+                assert= false $ .ok? $ read-saved-store "|{} (:states false)"
+                assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:data false)))"
+                assert= false $ .ok? $ read-saved-store "|{} (:states ({} (:cursor ([] :branch))))"
+                assert= (Result :ok schema/store)
+                  read-saved-store $ write-saved-store schema/store
+                match
+                  read-saved-store "|{} (:states ({} (:cursor ([])) (:data ({} (:content |sample) (:snippet :range)))))"
+                  (:ok saved)
+                    do
+                      assert= :range $ :snippet $ .unwrap (:snippet-state saved)
+                      assert= (Result :ok saved)
+                        read-saved-store $ write-saved-store saved
+                  (:err error) (raise error)
+              :tags $ #{} :unit
+            %{} 'TestEntry (:name |rejects-misplaced-state-variants)
+              :code $ quote $ do
+                assert= (Result :err |Unsupported-playground-state-tree)
+                  read-saved-store "|{} (:states ({} (:cursor ({} (:content |sample) (:snippet :range)))))"
+                assert= (Result :err |Invalid-playground-snippet) (read-saved-store "|{} (:states ({} (:cursor ([])) (:data ([]))))")
+              :tags $ #{} :unit
         'register-log! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn register-log! ()
             js-set js/window |_calcit_log $ fn (content)
