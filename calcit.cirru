@@ -220,7 +220,7 @@
                 typed/record-op updater @*reel action (generate-id!) (now-ms)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -253,7 +253,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ respo-dom/query-selector |.app
@@ -262,7 +262,7 @@
         'on-reel-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-reel-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :js-ffi :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ date-now-snapshot
@@ -270,7 +270,7 @@
               write-saved-store $ :store @*reel
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'read-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-saved-store (raw)
             match (raw.parse-cirru-edn)
@@ -347,7 +347,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
@@ -358,7 +358,7 @@
                 hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! op
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :state)
         'restore-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn restore-storage! (raw)
             match (read-saved-store raw)
@@ -370,7 +370,7 @@
           :examples $ []
           :schema $ quote $ Fn String
             -> $ Result Unit String
-            :features :js-ffi
+            :features :js-ffi :state
         'write-saved-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn write-saved-store (store)
             format-cirru-edn $ {} $ :states

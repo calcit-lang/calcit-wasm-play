@@ -119,9 +119,9 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "calcit"
-version = "0.41.1"
+version = "0.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a57635165cf4c686ada2d7d8bb63b945da8e16564b8ce7b34e6d4f2f51fe21f"
+checksum = "79475bec2a3a0db2cf0a1ff0abd3a331a9c7a9e1a9d2b1b5f8a3c48671aa270e"
 dependencies = [
  "argh",
  "base64 0.22.1",
