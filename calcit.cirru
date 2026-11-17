@@ -71,8 +71,9 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
+            :features :state
         'comp-nav $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-nav ()
             div
@@ -347,7 +348,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :state)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! (mount-target)
@@ -358,7 +359,7 @@
                 hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! op
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :state)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'restore-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn restore-storage! (raw)
             match (read-saved-store raw)
