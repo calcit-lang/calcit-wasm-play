@@ -47,10 +47,10 @@ jobs:
           yarn --version
 
       - name: Set up Calcit and Caps
-        uses: calcit-lang/setup-calcit@v1.5.0
+        uses: calcit-lang/setup-calcit@v1.5.2
         with:
           tools: calcit,caps
-          caps-version: "0.1.1"
+          caps-version: "0.1.2"
           deps-file: deps.cirru
 
       - name: Resolve immutable dependencies
@@ -71,7 +71,7 @@ jobs:
       - name: Validate Calcit upgrade
         run: |
           set -euo pipefail
-          test "$(calcit --version)" = "0.44.0"
+          test "$(calcit --version)" = "0.45.0"
           test ! -e compact.cirru
           test ! -e package.cirru
           calcit edit format

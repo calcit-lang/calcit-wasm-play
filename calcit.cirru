@@ -28,14 +28,21 @@
                 :inner-text "|code here..."
                 :id |code
                 :on-keydown $ fn (e d!)
+                  hint-fn $ Fn respo.schema/RespoEvent
+                    Fn schema/Op $ -> Unit
+                    -> Unit
+                    :features :js-ffi
                   let
-                      keycode $ .unwrap-or (get e :keycode) 0
-                      meta? $ .unwrap-or (get e :meta?) false
-                      event $ .unwrap-or (get e :event) (js-object)
+                      keycode $ .unwrap-or
+                        js-nullish->option $ :keycode e
+                        , 0
+                      meta? $ .unwrap-or
+                        js-nullish->option $ :meta? e
+                        , false
                     when
                       and (= 13 keycode) meta?
                       run-calcit!
-                      .!preventDefault event
+                      .prevent-default! $ :event e
                     , &unit
           :examples $ []
           :schema $ quote $ Fn Tag (-> respo.schema/Component) (:features :js-ffi)
